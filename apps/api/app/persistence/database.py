@@ -71,6 +71,7 @@ class DatabaseManager:
                 pattern_cluster_id VARCHAR,
                 scenario_id VARCHAR,
                 status VARCHAR DEFAULT 'open',
+                graph_json VARCHAR,
                 created_at TIMESTAMP NOT NULL
             );
 

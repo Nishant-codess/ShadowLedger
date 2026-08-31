@@ -28,6 +28,7 @@ dev = [
     "pytest-asyncio>=0.23.0",
     "ruff>=0.5.0",
     "mypy>=1.10.0",
+    "types-networkx>=3.6.1",
 ]
 
 [tool.setuptools.packages.find]

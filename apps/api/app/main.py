@@ -11,6 +11,7 @@ from app.api.routes import (
     cases_router,
     health_router,
     metrics_router,
+    patterns_router,
 )
 
 
@@ -42,6 +43,7 @@ app.include_router(health_router)
 app.include_router(batches_router)
 app.include_router(cases_router)
 app.include_router(metrics_router)
+app.include_router(patterns_router)
 
 
 @app.get("/")

@@ -1,8 +1,10 @@
 #!/usr/bin/env python3
-"""Evaluation Benchmark Harness for ShadowLedger Baseline.
+"""Evaluation Benchmark Harness for ShadowLedger.
 
-Evaluates deterministic reconciliation performance, throughput, match rate,
-precision, recall, and safety against ground truth across scenario families.
+Evaluates both:
+1. Baseline Deterministic Engine (Chunk 1)
+2. Value-Flow Reconstruction & Shadow Ledger Engine (Chunk 2)
+Measuring throughput, match rate, true resolution rate, precision, recall, and safety against ground truth.
 """
 
 import argparse
@@ -18,14 +20,15 @@ sys.path.insert(0, str(repo_root / "apps" / "api"))
 from app.data.ingest import ingest_from_json_file
 from app.data.normalize import normalize_batch
 from app.engine.reconciler import DeterministicReconciler
-from app.metrics.evaluator import compute_metrics
-from app.metrics.reporter import metrics_to_dict, print_evaluation_report
+from app.engine.shadow_engine import ValueFlowReconstructionEngine
+from app.metrics.evaluator import compute_enhanced_metrics, compute_metrics
+from app.metrics.reporter import metrics_to_dict, print_comparison_report
 
 from scripts.generate_dataset import generate_dataset
 
 
 def run_benchmark(rows: int = 1000, seed: int = 42, json_file: str | None = None) -> dict:
-    """Run full deterministic reconciliation benchmark."""
+    """Run full side-by-side benchmark comparing Baseline vs Value-Flow Reconstruction."""
     out_dir = repo_root / "data" / "generated"
     truth_dir = repo_root / "data" / "truth"
 
@@ -57,29 +60,56 @@ def run_benchmark(rows: int = 1000, seed: int = 42, json_file: str | None = None
     print(f"Normalizing {len(ingest_result.valid_records)} records...")
     observations, inventory_moves = normalize_batch(ingest_result.valid_records, batch_id=batch_id)
 
-    # 4. Reconcile
-    print("Running Deterministic Reconciliation Engine...")
-    reconciler = DeterministicReconciler()
+    # 4. Run Baseline Deterministic Engine (Chunk 1)
+    print("Running Stage 1: Deterministic Baseline Engine...")
+    baseline_reconciler = DeterministicReconciler()
     t0 = time.perf_counter()
-    reconcile_result = reconciler.reconcile_batch(
+    baseline_result = baseline_reconciler.reconcile_batch(
         observations=observations,
         inventory_moves=inventory_moves,
         batch_id=batch_id,
     )
-    elapsed_ms = (time.perf_counter() - t0) * 1000.0
-
-    # 5. Compute Metrics
-    metrics = compute_metrics(
-        result=reconcile_result,
-        processing_time_ms=elapsed_ms,
+    baseline_elapsed_ms = (time.perf_counter() - t0) * 1000.0
+    baseline_metrics = compute_metrics(
+        result=baseline_result,
+        processing_time_ms=baseline_elapsed_ms,
         ground_truth_list=ground_truth,
     )
 
-    # 6. Render Report
-    print_evaluation_report(metrics)
+    # 5. Run Enhanced Value-Flow Reconstruction Engine (Chunk 2)
+    print("Running Stages 1-7: Value-Flow Reconstruction Engine...")
+    shadow_engine = ValueFlowReconstructionEngine()
+    enhanced_result = shadow_engine.process_batch(
+        batch_id=batch_id,
+        observations=observations,
+        inventory_moves=inventory_moves,
+    )
+    enhanced_metrics = compute_enhanced_metrics(
+        result=enhanced_result,
+        ground_truth_list=ground_truth,
+    )
+
+    # 6. Render Side-by-Side Comparison Report
+    print_comparison_report(baseline_metrics, enhanced_metrics)
 
     # 7. Export result
-    res_dict = metrics_to_dict(metrics)
+    res_dict = {
+        "batch_id": batch_id,
+        "records": len(observations),
+        "baseline": metrics_to_dict(baseline_metrics),
+        "enhanced": metrics_to_dict(enhanced_metrics),
+        "pattern_clusters": [
+            {
+                "cluster_id": pc.cluster_id,
+                "signature": pc.pattern_signature,
+                "exceptions": pc.exception_count,
+                "value_at_risk": float(pc.total_value_at_risk),
+                "likely_common_cause": pc.likely_common_cause,
+            }
+            for pc in enhanced_result.pattern_clusters
+        ],
+    }
+
     results_path = repo_root / "data" / "benchmark_results.json"
     with open(results_path, "w", encoding="utf-8") as f:
         json.dump(res_dict, f, indent=2)
@@ -89,7 +119,7 @@ def run_benchmark(rows: int = 1000, seed: int = 42, json_file: str | None = None
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Run ShadowLedger baseline reconciliation benchmark")
+    parser = argparse.ArgumentParser(description="Run ShadowLedger reconciliation benchmark")
     parser.add_argument("--rows", type=int, default=1000, help="Number of records to evaluate (default: 1000)")
     parser.add_argument("--seed", type=int, default=42, help="Random seed (default: 42)")
     parser.add_argument("--file", type=str, default=None, help="Optional path to existing observed JSON file")

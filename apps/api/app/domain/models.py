@@ -171,6 +171,8 @@ class Case(DomainBase):
     pattern_cluster_id: str | None = None
     scenario_id: str | None = None
     status: str = "open"
+    graph_json: dict[str, Any] | None = None
+    shadow_events: list[Event] = Field(default_factory=list)
     created_at: datetime = Field(default_factory=_utc_now)
 
 

@@ -1,7 +1,6 @@
 """Batch ingestion and reconciliation endpoints."""
 
 import random
-import time
 from datetime import UTC, datetime
 from typing import Any
 from uuid import uuid4
@@ -12,8 +11,7 @@ from app.api.schemas.api_models import BatchSummaryResponse, ProcessBatchRequest
 from app.data.normalize import normalize_batch
 from app.domain.models import BatchMetadata
 from app.domain.scenarios import SCENARIOS
-from app.engine.reconciler import DeterministicReconciler
-from app.metrics.evaluator import compute_metrics
+from app.engine.shadow_engine import ValueFlowReconstructionEngine
 from app.persistence.case_repo import CaseRepository
 from app.persistence.database import DatabaseManager
 from app.persistence.observation_repo import ObservationRepository
@@ -24,7 +22,7 @@ router = APIRouter(prefix="/api/batches", tags=["Batches"])
 _db_manager = DatabaseManager()
 _obs_repo = ObservationRepository(_db_manager)
 _case_repo = CaseRepository(_db_manager)
-_reconciler = DeterministicReconciler()
+_engine = ValueFlowReconstructionEngine()
 
 
 def get_db() -> DatabaseManager:
@@ -37,6 +35,10 @@ def get_obs_repo() -> ObservationRepository:
 
 def get_case_repo() -> CaseRepository:
     return _case_repo
+
+
+def get_engine() -> ValueFlowReconstructionEngine:
+    return _engine
 
 
 def generate_synthetic_records(seed: int, target_rows: int) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
@@ -81,17 +83,16 @@ def process_batch(
     req: ProcessBatchRequest,
     obs_repo: ObservationRepository = Depends(get_obs_repo),
     case_repo: CaseRepository = Depends(get_case_repo),
+    engine: ValueFlowReconstructionEngine = Depends(get_engine),
 ) -> BatchSummaryResponse:
-    """Ingest, normalize, and execute deterministic baseline reconciliation."""
-    t0 = time.perf_counter()
+    """Ingest, normalize, and execute full Value-Flow Reconstruction & Shadow Ledger engine."""
     batch_id = req.batch_id or f"batch_{uuid4().hex[:8]}"
 
-    ground_truth = None
     if req.records:
         raw_records = req.records
     else:
         seed = req.seed if req.seed is not None else 42
-        raw_records, ground_truth = generate_synthetic_records(seed=seed, target_rows=req.rows)
+        raw_records, _ = generate_synthetic_records(seed=seed, target_rows=req.rows)
 
     # 1. Normalize
     observations, inventory_moves = normalize_batch(raw_records, batch_id=batch_id)
@@ -101,48 +102,73 @@ def process_batch(
     if inventory_moves:
         obs_repo.save_inventory_moves(inventory_moves)
 
-    # 3. Deterministic Reconciliation
-    result = _reconciler.reconcile_batch(
+    # 3. Value-Flow Reconstruction Pipeline (Chunk 2)
+    result = engine.process_batch(
+        batch_id=batch_id,
         observations=observations,
         inventory_moves=inventory_moves,
-        batch_id=batch_id,
     )
 
-    # 4. Save Discrepancy Cases
+    # 4. Save Cases, Decisions, Shadow Events, and Pattern Clusters
     case_repo.save_cases(result.cases)
+    case_repo.save_pattern_clusters(result.pattern_clusters)
 
-    # 5. Compute Metrics & Save Batch Metadata
-    elapsed_ms = (time.perf_counter() - t0) * 1000.0
-    metrics = compute_metrics(result=result, processing_time_ms=elapsed_ms, ground_truth_list=ground_truth)
+    # 5. Build reason code breakdown from decisions
+    reason_breakdown: dict[str, int] = {}
+    for c in result.cases:
+        if c.decision:
+            for rc in c.decision.reason_codes:
+                reason_breakdown[rc] = reason_breakdown.get(rc, 0) + 1
 
+    # 6. Save Batch Metadata
     meta = BatchMetadata(
         batch_id=batch_id,
         seed=req.seed,
-        record_count=result.total_observations,
+        record_count=result.total_records,
         matched_count=result.matched_count,
         exception_count=result.exception_count,
-        resolved_count=result.matched_count,
-        review_count=0,
-        unresolved_count=result.exception_count,
+        resolved_count=result.auto_resolved_count + result.matched_count,
+        review_count=result.human_review_count,
+        unresolved_count=result.unresolved_count,
         total_volume_inr=result.total_volume_inr,
         explained_volume_inr=result.explained_volume_inr,
         unexplained_volume_inr=result.unexplained_volume_inr,
-        processing_time_ms=elapsed_ms,
+        processing_time_ms=result.processing_time_ms,
     )
     case_repo.save_batch_metadata(meta)
 
+    # Serialize pattern clusters
+    pattern_cluster_dicts = [
+        {
+            "cluster_id": pc.cluster_id,
+            "batch_id": pc.batch_id,
+            "case_ids": pc.case_ids,
+            "pattern_signature": pc.pattern_signature,
+            "exception_count": pc.exception_count,
+            "total_value_at_risk": float(pc.total_value_at_risk),
+            "likely_common_cause": pc.likely_common_cause,
+            "evidence_strength": pc.evidence_strength,
+        }
+        for pc in result.pattern_clusters
+    ]
+
     return BatchSummaryResponse(
         batch_id=batch_id,
-        record_count=result.total_observations,
+        record_count=result.total_records,
         matched_count=result.matched_count,
         exception_count=result.exception_count,
-        match_rate=result.match_rate,
-        throughput_records_per_sec=metrics.throughput_records_per_sec,
+        auto_resolved_count=result.auto_resolved_count,
+        human_review_count=result.human_review_count,
+        unresolved_count=result.unresolved_count,
+        match_rate=result.baseline_match_rate,
+        enhanced_resolution_rate=result.enhanced_resolution_rate,
+        throughput_records_per_sec=result.throughput_records_per_sec,
         total_volume_inr=float(result.total_volume_inr),
         explained_volume_inr=float(result.explained_volume_inr),
         unexplained_volume_inr=float(result.unexplained_volume_inr),
-        processing_time_ms=round(elapsed_ms, 2),
-        reason_code_breakdown=metrics.reason_code_breakdown,
+        processing_time_ms=result.processing_time_ms,
+        reason_code_breakdown=reason_breakdown,
+        pattern_clusters=pattern_cluster_dicts,
     )
 
 

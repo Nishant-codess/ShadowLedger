@@ -32,6 +32,8 @@ def list_cases(
             financial_impact=float(c.financial_impact),
             scenario_id=c.scenario_id,
             status=c.status,
+            pattern_cluster_id=c.pattern_cluster_id,
+            graph_json=c.graph_json,
             decision=c.decision.model_dump(mode="json") if c.decision else None,
         )
         for c in cases
@@ -44,26 +46,29 @@ def get_case(
     case_repo: CaseRepository = Depends(get_case_repo),
     obs_repo: ObservationRepository = Depends(get_obs_repo),
 ) -> CaseDetailResponse:
-    """Fetch complete detail for a specific case including connected observations."""
-    batches = case_repo.list_all_batches()
-    for b in batches:
-        cases = case_repo.get_cases_by_batch(b.batch_id)
-        for c in cases:
-            if c.case_id == case_id:
-                # Fetch connected observations
-                all_obs = obs_repo.get_by_batch(c.batch_id)
-                connected = [o.model_dump(mode="json") for o in all_obs if o.observation_id in c.observation_ids]
+    """Fetch complete detail for a specific case including connected observations and graph."""
+    c = case_repo.get_case_by_id(case_id)
+    if not c:
+        raise HTTPException(status_code=404, detail=f"Case {case_id} not found")
 
-                return CaseDetailResponse(
-                    case_id=c.case_id,
-                    batch_id=c.batch_id,
-                    observation_ids=c.observation_ids,
-                    residual_amount=float(c.residual_amount),
-                    financial_impact=float(c.financial_impact),
-                    scenario_id=c.scenario_id,
-                    status=c.status,
-                    decision=c.decision.model_dump(mode="json") if c.decision else None,
-                    observations=connected,
-                )
+    # Fetch connected observations
+    all_obs = obs_repo.get_by_batch(c.batch_id)
+    connected = [o.model_dump(mode="json") for o in all_obs if o.observation_id in c.observation_ids]
 
-    raise HTTPException(status_code=404, detail=f"Case {case_id} not found")
+    # Fetch shadow events if any
+    shadow_events_serialized = [se.model_dump(mode="json") for se in c.shadow_events]
+
+    return CaseDetailResponse(
+        case_id=c.case_id,
+        batch_id=c.batch_id,
+        observation_ids=c.observation_ids,
+        residual_amount=float(c.residual_amount),
+        financial_impact=float(c.financial_impact),
+        scenario_id=c.scenario_id,
+        status=c.status,
+        pattern_cluster_id=c.pattern_cluster_id,
+        graph_json=c.graph_json,
+        shadow_events=shadow_events_serialized,
+        decision=c.decision.model_dump(mode="json") if c.decision else None,
+        observations=connected,
+    )

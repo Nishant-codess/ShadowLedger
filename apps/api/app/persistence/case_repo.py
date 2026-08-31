@@ -4,12 +4,12 @@ import json
 from decimal import Decimal
 
 from app.domain.enums import ActionRisk, DecisionType
-from app.domain.models import BatchMetadata, Case, Decision
+from app.domain.models import BatchMetadata, Case, Decision, Event, PatternCluster
 from app.persistence.database import DatabaseManager
 
 
 class CaseRepository:
-    """CRUD operations for discrepancy Cases, Decisions, and Batches."""
+    """CRUD operations for discrepancy Cases, Decisions, Batches, Events, and Pattern Clusters."""
 
     def __init__(self, db: DatabaseManager):
         self.db = db
@@ -29,6 +29,7 @@ class CaseRepository:
                 c.pattern_cluster_id,
                 c.scenario_id,
                 c.status,
+                json.dumps(c.graph_json) if c.graph_json else None,
                 c.created_at,
             )
             for c in cases
@@ -36,7 +37,7 @@ class CaseRepository:
 
         self.db.conn.executemany(
             """
-            INSERT OR REPLACE INTO cases VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+            INSERT OR REPLACE INTO cases VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """,
             case_data,
         )
@@ -69,13 +70,20 @@ class CaseRepository:
                 dec_data,
             )
 
+        # Save shadow events if attached
+        all_shadow_events: list[Event] = []
+        for c in cases:
+            all_shadow_events.extend(c.shadow_events)
+        if all_shadow_events:
+            self.save_events(all_shadow_events)
+
     def get_cases_by_batch(self, batch_id: str) -> list[Case]:
         """Fetch all cases for a batch with their decisions attached."""
         rows = self.db.conn.execute(
             """
             SELECT c.case_id, c.batch_id, c.observation_ids, c.residual_amount,
                    c.financial_impact, c.pattern_cluster_id, c.scenario_id,
-                   c.status, c.created_at,
+                   c.status, c.graph_json, c.created_at,
                    d.decision_id, d.decision, d.winning_hypothesis_id,
                    d.reason_codes, d.evidence_ids, d.evidence_confidence,
                    d.contradiction_severity, d.financial_materiality, d.action_risk,
@@ -91,21 +99,21 @@ class CaseRepository:
         cases: list[Case] = []
         for r in rows:
             decision = None
-            if r[9]:  # If decision_id exists
+            if r[10]:  # If decision_id exists
                 decision = Decision(
-                    decision_id=r[9],
+                    decision_id=r[10],
                     case_id=r[0],
-                    decision=DecisionType(r[10]),
-                    winning_hypothesis_id=r[11],
-                    reason_codes=json.loads(r[12]) if r[12] else [],
-                    evidence_ids=json.loads(r[13]) if r[13] else [],
-                    evidence_confidence=r[14] or 0.0,
-                    contradiction_severity=r[15] or 0.0,
-                    financial_materiality=Decimal(str(r[16] or "0.00")),
-                    action_risk=ActionRisk(r[17] or "low"),
-                    engine_version=r[18] or "0.1.0",
-                    model_version=r[19],
-                    decided_at=r[20],
+                    decision=DecisionType(r[11]),
+                    winning_hypothesis_id=r[12],
+                    reason_codes=json.loads(r[13]) if r[13] else [],
+                    evidence_ids=json.loads(r[14]) if r[14] else [],
+                    evidence_confidence=r[15] or 0.0,
+                    contradiction_severity=r[16] or 0.0,
+                    financial_materiality=Decimal(str(r[17] or "0.00")),
+                    action_risk=ActionRisk(r[18] or "low"),
+                    engine_version=r[19] or "0.1.0",
+                    model_version=r[20],
+                    decided_at=r[21],
                 )
 
             cases.append(
@@ -118,11 +126,151 @@ class CaseRepository:
                     pattern_cluster_id=r[5],
                     scenario_id=r[6],
                     status=r[7],
-                    created_at=r[8],
+                    graph_json=json.loads(r[8]) if r[8] else None,
+                    created_at=r[9],
                     decision=decision,
                 )
             )
         return cases
+
+    def get_case_by_id(self, case_id: str) -> Case | None:
+        """Fetch a single case by ID."""
+        row = self.db.conn.execute(
+            """
+            SELECT c.case_id, c.batch_id, c.observation_ids, c.residual_amount,
+                   c.financial_impact, c.pattern_cluster_id, c.scenario_id,
+                   c.status, c.graph_json, c.created_at,
+                   d.decision_id, d.decision, d.winning_hypothesis_id,
+                   d.reason_codes, d.evidence_ids, d.evidence_confidence,
+                   d.contradiction_severity, d.financial_materiality, d.action_risk,
+                   d.engine_version, d.model_version, d.decided_at
+            FROM cases c
+            LEFT JOIN decisions d ON c.case_id = d.case_id
+            WHERE c.case_id = ?
+            """,
+            [case_id],
+        ).fetchone()
+
+        if not row:
+            return None
+
+        decision = None
+        if row[10]:
+            decision = Decision(
+                decision_id=row[10],
+                case_id=row[0],
+                decision=DecisionType(row[11]),
+                winning_hypothesis_id=row[12],
+                reason_codes=json.loads(row[13]) if row[13] else [],
+                evidence_ids=json.loads(row[14]) if row[14] else [],
+                evidence_confidence=row[15] or 0.0,
+                contradiction_severity=row[16] or 0.0,
+                financial_materiality=Decimal(str(row[17] or "0.00")),
+                action_risk=ActionRisk(row[18] or "low"),
+                engine_version=row[19] or "0.1.0",
+                model_version=row[20],
+                decided_at=row[21],
+            )
+
+        return Case(
+            case_id=row[0],
+            batch_id=row[1],
+            observation_ids=json.loads(row[2]) if row[2] else [],
+            residual_amount=Decimal(str(row[3])),
+            financial_impact=Decimal(str(row[4])),
+            pattern_cluster_id=row[5],
+            scenario_id=row[6],
+            status=row[7],
+            graph_json=json.loads(row[8]) if row[8] else None,
+            created_at=row[9],
+            decision=decision,
+        )
+
+    def save_events(self, events: list[Event]) -> None:
+        """Insert or replace normalized financial and shadow ledger events."""
+        if not events:
+            return
+
+        event_data = [
+            (
+                e.event_id,
+                e.status.value,
+                e.event_type.value,
+                float(e.amount),
+                e.currency,
+                e.timestamp,
+                json.dumps(e.entity_ids),
+                json.dumps(e.source_observation_ids),
+                e.confidence,
+                e.hypothesis_type.value if e.hypothesis_type else None,
+                json.dumps(e.contradiction_ids),
+                e.batch_id,
+            )
+            for e in events
+        ]
+
+        self.db.conn.executemany(
+            """
+            INSERT OR REPLACE INTO events VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """,
+            event_data,
+        )
+
+    def save_pattern_clusters(self, clusters: list[PatternCluster]) -> None:
+        """Insert or replace pattern clusters."""
+        if not clusters:
+            return
+
+        cluster_data = [
+            (
+                c.cluster_id,
+                c.batch_id,
+                json.dumps(c.case_ids),
+                c.pattern_signature,
+                c.exception_count,
+                float(c.total_value_at_risk),
+                c.likely_common_cause,
+                c.evidence_strength,
+                c.created_at,
+            )
+            for c in clusters
+        ]
+
+        self.db.conn.executemany(
+            """
+            INSERT OR REPLACE INTO pattern_clusters VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """,
+            cluster_data,
+        )
+
+    def get_pattern_clusters_by_batch(self, batch_id: str) -> list[PatternCluster]:
+        """Fetch all pattern clusters for a batch."""
+        rows = self.db.conn.execute(
+            """
+            SELECT cluster_id, batch_id, case_ids, pattern_signature,
+                   exception_count, total_value_at_risk, likely_common_cause,
+                   evidence_strength, created_at
+            FROM pattern_clusters
+            WHERE batch_id = ?
+            ORDER BY total_value_at_risk DESC
+            """,
+            [batch_id],
+        ).fetchall()
+
+        return [
+            PatternCluster(
+                cluster_id=r[0],
+                batch_id=r[1],
+                case_ids=json.loads(r[2]) if r[2] else [],
+                pattern_signature=r[3],
+                exception_count=r[4],
+                total_value_at_risk=Decimal(str(r[5])),
+                likely_common_cause=r[6],
+                evidence_strength=r[7],
+                created_at=r[8],
+            )
+            for r in rows
+        ]
 
     def save_batch_metadata(self, meta: BatchMetadata) -> None:
         """Insert or update batch processing summary."""
