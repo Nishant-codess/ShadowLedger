@@ -1,0 +1,3 @@
+# Pyrefly configuration for ShadowLedger Monorepo
+project-root = "."
+search-path = ["apps/api"]

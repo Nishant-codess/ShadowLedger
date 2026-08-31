@@ -1,0 +1,89 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  backend:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install backend dependencies
+        run: pip install -e "./apps/api[dev]"
+      - name: Lint with ruff
+        run: ruff check apps/api scripts
+      - name: Typecheck with mypy
+        run: mypy apps/api
+      - name: Run pytest test suite
+        run: pytest apps/api/tests -v
+
+  frontend:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20.9'
+      - name: Install frontend dependencies
+        run: cd apps/web && npm ci
+      - name: Lint with ESLint
+        run: cd apps/web && npm run lint
+      - name: Typecheck with tsc
+        run: cd apps/web && npm run typecheck
+      - name: Build Next.js app
+        run: cd apps/web && npm run build
+
+  smoke:
+    needs: [backend, frontend]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install dependencies
+        run: pip install -e "./apps/api[dev]"
+      - name: Generate synthetic test dataset
+        run: python scripts/generate_dataset.py --rows 100 --seed 42
+      - name: Run end-to-end pipeline smoke test
+        run: |
+          timeout 60 python -c "
+          import uvicorn, threading, time, urllib.request, json
+
+          # 1. Start FastAPI server
+          t = threading.Thread(target=lambda: uvicorn.run('app.main:app', app_dir='apps/api', port=8000), daemon=True)
+          t.start(); time.sleep(3)
+
+          # 2. Health check
+          r = urllib.request.urlopen('http://localhost:8000/health')
+          assert r.status == 200, 'Health check failed'
+
+          # 3. Ingest & process batch
+          req = urllib.request.Request(
+              'http://localhost:8000/api/batches/process',
+              data=json.dumps({'seed': 42, 'rows': 100}).encode(),
+              headers={'Content-Type': 'application/json'},
+              method='POST'
+          )
+          r = urllib.request.urlopen(req, timeout=30)
+          assert r.status == 200, 'Batch processing failed'
+          batch = json.loads(r.read())
+
+          # 4. Verify cases endpoint
+          r = urllib.request.urlopen('http://localhost:8000/api/cases')
+          cases = json.loads(r.read())
+          assert len(cases) > 0, 'No cases generated'
+
+          # 5. Verify metrics endpoint
+          r = urllib.request.urlopen('http://localhost:8000/api/metrics')
+          metrics = json.loads(r.read())
+          assert 'match_rate' in metrics, 'Metrics missing match_rate'
+
+          print(f'CI Smoke Test Passed: {len(cases)} cases created, match_rate={metrics[\"match_rate\"]}%, throughput={metrics[\"throughput_records_per_sec\"]} r/s')
+          "

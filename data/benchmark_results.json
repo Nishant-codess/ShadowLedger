@@ -1,0 +1,85 @@
+{
+  "batch_id": "benchmark_s42_r10000",
+  "record_count": 10000,
+  "matched_count": 2517,
+  "exception_count": 7483,
+  "match_rate": 25.17,
+  "throughput_records_per_sec": 205200.6,
+  "total_volume_inr": 50770611.31,
+  "explained_volume_inr": 35448051.54,
+  "unexplained_volume_inr": 15322559.77,
+  "processing_time_ms": 48.73,
+  "ground_truth_precision": 100.0,
+  "ground_truth_recall": 33.9,
+  "unsafe_resolutions_count": 0,
+  "reason_code_breakdown": {
+    "EXACT_ID_AND_AMOUNT_MATCH": 750,
+    "POS_EXCEEDS_SETTLEMENT_POSSIBLE_REFUND": 6704,
+    "EXACT_FEE_ADJUSTMENT_MATCH": 1125,
+    "INVENTORY_SETTLEMENT_EXACT": 642,
+    "ORPHAN_SINGLE_RECORD": 496,
+    "SETTLEMENT_EXCEEDS_POS_POSSIBLE_SURCHARGE": 86
+  },
+  "scenario_breakdown": {
+    "SCN_06": {
+      "total": 178,
+      "matched": 178,
+      "exceptions": 0
+    },
+    "SCN_01": {
+      "total": 1880,
+      "matched": 0,
+      "exceptions": 1880
+    },
+    "SCN_07": {
+      "total": 197,
+      "matched": 197,
+      "exceptions": 0
+    },
+    "SCN_03": {
+      "total": 375,
+      "matched": 375,
+      "exceptions": 0
+    },
+    "SCN_04": {
+      "total": 214,
+      "matched": 214,
+      "exceptions": 0
+    },
+    "SCN_05": {
+      "total": 180,
+      "matched": 0,
+      "exceptions": 180
+    },
+    "SCN_09": {
+      "total": 72,
+      "matched": 0,
+      "exceptions": 72
+    },
+    "SCN_02": {
+      "total": 352,
+      "matched": 0,
+      "exceptions": 352
+    },
+    "SCN_11": {
+      "total": 41,
+      "matched": 0,
+      "exceptions": 41
+    },
+    "SCN_10": {
+      "total": 66,
+      "matched": 0,
+      "exceptions": 66
+    },
+    "SCN_08": {
+      "total": 100,
+      "matched": 0,
+      "exceptions": 100
+    },
+    "SCN_12": {
+      "total": 158,
+      "matched": 0,
+      "exceptions": 158
+    }
+  }
+}
