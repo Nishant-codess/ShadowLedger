@@ -317,15 +317,15 @@ Experience the engine live on the web command center:
 journey
     title 5-Minute Evaluation Experience
     section Hero A (Kirana Non-Monetary)
-      Ingest POS Bill (₹98) vs Bank Deposit (₹100): 5: Operator
-      Engine links 1x Dairy Milk chocolate inventory: 5: Engine
-      Conservation equation closes (₹98 + ₹2 = ₹100): 5: Engine
+      Ingest POS Bill and Bank Deposit: 5: Operator
+      Engine links Dairy Milk inventory change: 5: Engine
+      Conservation equation closes: 5: Engine
       Safe Auto-Resolve with 0.95 confidence: 5: Decision Gate
     section Hero B (Mobility Fare Safety)
-      Ingest Cab Ride (₹150 booked vs ₹200 true fare): 5: Operator
-      Trip 1 (Digital QR Trace) -> Escalates to Human Review: 5: Safety Gate
-      Trip 2 (Cash Only) -> Safely marks Unresolved: 5: Safety Gate
-      Zero hallucinations or unauthorized auto-clearing: 5: Auditor
+      Ingest Cab Ride Discrepancy: 5: Operator
+      Trip 1 with Digital QR Trace Escalates to Human Review: 5: Safety Gate
+      Trip 2 with Cash Only Safely Marks Unresolved: 5: Safety Gate
+      Zero hallucinations and zero false auto-clears: 5: Auditor
     section Hero C (Fleet Pattern Discovery)
       Ingest 60 exception records across 30 trips: 5: Operator
       Engine clusters cases into 3 systemic operational patterns: 5: Pattern Engine

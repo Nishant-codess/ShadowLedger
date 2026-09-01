@@ -17,18 +17,18 @@
 ```mermaid
 graph LR
     subgraph UI_NAV ["Interactive Workbench Views"]
-        CC["1. Command Center<br/>(/)"]
-        EX["2. Exception Workbench<br/>(/exceptions)"]
-        CD["3. Case Dossier<br/>(/cases/{id})"]
-        PT["4. Fleet Patterns<br/>(/patterns)"]
-        BM["5. Live Benchmark<br/>(/benchmark)"]
+        CC["1. Command Center<br/>/"]
+        EX["2. Exception Workbench<br/>/exceptions"]
+        CD["3. Case Dossier<br/>/cases/:case_id"]
+        PT["4. Fleet Patterns<br/>/patterns"]
+        BM["5. Live Benchmark<br/>/benchmark"]
     end
 
-    CC -->|Select Case| CD
-    CC -->|View All Queue| EX
-    EX -->|Investigate Case| CD
-    CD -->|Examine Fleet Root Cause| PT
-    CC -->|Audit Performance| BM
+    CC -->|"Select Case"| CD
+    CC -->|"View All Queue"| EX
+    EX -->|"Investigate Case"| CD
+    CD -->|"Examine Fleet Root Cause"| PT
+    CC -->|"Audit Performance"| BM
 
     classDef ccStyle fill:#1e1b4b,stroke:#818cf8,stroke-width:2px,color:#fff;
     classDef exStyle fill:#064e3b,stroke:#34d399,stroke-width:2px,color:#fff;
@@ -49,16 +49,16 @@ graph LR
 
 ```mermaid
 flowchart TD
-    START([1. Anomaly Flagged in Exceptions Queue]) --> INSPECT[2. Open Case Dossier]
-    INSPECT --> GRAPH[3. Inspect Directed Value-Flow Graph]
-    GRAPH --> HYPO[4. Evaluate Ranked Candidate Hypotheses]
-    HYPO --> SCORE[5. Review 7D Evidence Breakdown]
+    START(["1. Anomaly Flagged in Exceptions Queue"]) --> INSPECT["2. Open Case Dossier"]
+    INSPECT --> GRAPH["3. Inspect Directed Value-Flow Graph"]
+    GRAPH --> HYPO["4. Evaluate Ranked Candidate Hypotheses"]
+    HYPO --> SCORE["5. Review 7D Evidence Breakdown"]
     
-    SCORE --> DECISION{6. Operator Decision}
+    SCORE --> DECISION{"6. Operator Decision"}
     
-    DECISION -->|Confidence ≥ 0.85 & Validated| ACCEPT[✅ Accept Hypothesis<br/>Records to Audit Trail]
-    DECISION -->|Materiality High / Policy Ambiguous| ESCALATE[⚠️ Escalate to Supervisor<br/>Routes to Senior Controller]
-    DECISION -->|Missing Digital Trace (Cash)| UNRES[🛑 Confirm Unresolved<br/>Refuses False Guess]
+    DECISION -->|"Confidence >= 0.85 & Validated"| ACCEPT["✅ Accept Hypothesis<br/>Records to Audit Trail"]
+    DECISION -->|"Materiality High or Policy Ambiguous"| ESCALATE["⚠️ Escalate to Supervisor<br/>Routes to Senior Controller"]
+    DECISION -->|"Missing Digital Trace - Cash Only"| UNRES["🛑 Confirm Unresolved<br/>Refuses False Guess"]
 
     classDef procStyle fill:#1e293b,stroke:#818cf8,stroke-width:2px,color:#fff;
     classDef accStyle fill:#064e3b,stroke:#34d399,stroke-width:2px,color:#fff;

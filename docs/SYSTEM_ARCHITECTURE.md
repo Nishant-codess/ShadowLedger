@@ -15,35 +15,46 @@
 ## 1. High-Level C4 Component Diagram
 
 ```mermaid
-C4Component
-    title Component Diagram for ShadowLedger Reconstruction Engine
+flowchart TD
+    subgraph APP ["FastAPI Application Server (Python 3.12+)"]
+        INGEST["Normalizer & Ingest Module<br/>(Decimal Math & UTC)"]
+        RECON["Deterministic Reconciler<br/>(Stage 1 Exact Matching at 300k+ rec/s)"]
+        GRAPH["Value-Flow Graph Builder<br/>(NetworkX Directed Multigraph)"]
+        HYPO["Latent Hypothesis Engine<br/>(Candidate Economic Explanations)"]
+        SCORER["7D Evidence Scorer<br/>(Mathematical Conservation & Calibrated Fit)"]
+        GATE["Decision Risk Gate<br/>(Auditable Safety Invariants)"]
+        PATTERN["Fleet Pattern Engine<br/>(Cross-Case Signature Clustering)"]
+        DBM["Database Manager<br/>(Thread-Safe RLock Mutex)"]
+        AI["Local AI Explainer<br/>(Ollama / Deterministic Fallback)"]
 
-    Container_Boundary(api_boundary, "FastAPI Application Server (Python 3.12+)") {
-        Component(ingest_mod, "Normalizer & Ingest Module", "Python Decimal & UTC", "Normalizes raw multi-source streams")
-        Component(reconciler_mod, "Deterministic Reconciler", "Stage 1 Exact Match", "Resolves 1-to-1 matches, fee schedules, & candy change at 300k+ rec/s")
-        Component(graph_builder, "Value-Flow Graph Builder", "NetworkX Multigraph", "Builds directed economic transaction networks")
-        Component(hypo_engine, "Latent Hypothesis Engine", "Constraint Logic", "Generates candidate economic explanations")
-        Component(scorer_mod, "7D Evidence Scorer", "Mathematical Calibration", "Evaluates hypotheses across 7 invariants")
-        Component(gate_mod, "Decision Risk Gate", "Auditable Invariants", "Enforces Auto-Resolve vs Human Review")
-        Component(pattern_engine, "Fleet Pattern Engine", "Signature Clustering", "Groups batch exceptions into structural clusters")
-        Component(db_manager, "Database Manager", "DuckDB 1.4.5 + RLock", "Thread-safe ACID persistence")
-        Component(ai_explainer, "Local AI Explainer", "Ollama / Template Fallback", "Generates operator-facing audit narratives")
-    }
+        INGEST -->|"Canonical Records"| RECON
+        RECON -->|"Matched Official Records"| DBM
+        RECON -->|"Unmatched Exceptions"| GRAPH
+        GRAPH -->|"Graph Topology"| HYPO
+        HYPO -->|"Candidate Explanations"| SCORER
+        SCORER -->|"Calibrated Confidence"| GATE
+        GATE -->|"Case Decisions"| PATTERN
+        PATTERN -->|"Cases & Clusters"| DBM
+    end
 
-    ContainerDb(duckdb, "Embedded DuckDB Storage", "DuckDB File / In-Memory", "Stores observations, cases, patterns, and audit events")
-    Container(next_app, "Next.js 16 Web Dashboard", "React, TypeScript, Tailwind", "Interactive investigation workbench and graph visualizer")
+    subgraph STORAGE ["Storage Layer"]
+        DUCK[("Embedded DuckDB 1.4.5<br/>Columnar Storage File")]
+        DBM <-->|"ACID Queries"| DUCK
+    end
 
-    Rel(ingest_mod, reconciler_mod, "Passes canonical records")
-    Rel(reconciler_mod, db_manager, "Saves matched records")
-    Rel(reconciler_mod, graph_builder, "Passes unmatched exceptions")
-    Rel(graph_builder, hypo_engine, "Supplies graph topology")
-    Rel(hypo_engine, scorer_mod, "Scores candidate hypotheses")
-    Rel(scorer_mod, gate_mod, "Evaluates confidence & materiality")
-    Rel(gate_mod, pattern_engine, "Passes case decisions")
-    Rel(pattern_engine, db_manager, "Persists cases & pattern clusters")
-    Rel(db_manager, duckdb, "ACID Read / Write Queries")
-    Rel(next_app, db_manager, "Queries cases & benchmarks via REST API")
-    Rel(ai_explainer, next_app, "Supplies structured explanation narratives")
+    subgraph PRESENTATION ["Presentation Layer"]
+        WEB["Next.js 16 Web Dashboard<br/>(Command Center & Visual Graphs)"]
+        AI -->|"Narrative Briefings"| WEB
+        DBM -->|"Case Data via REST"| WEB
+    end
+
+    classDef compStyle fill:#1e1b4b,stroke:#818cf8,stroke-width:2px,color:#fff;
+    classDef stgStyle fill:#064e3b,stroke:#34d399,stroke-width:2px,color:#fff;
+    classDef presStyle fill:#4c1d95,stroke:#a78bfa,stroke-width:2px,color:#fff;
+
+    class INGEST,RECON,GRAPH,HYPO,SCORER,GATE,PATTERN,DBM compStyle;
+    class DUCK stgStyle;
+    class WEB,AI presStyle;
 ```
 
 ---
