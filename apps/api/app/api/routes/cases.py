@@ -3,7 +3,7 @@
 from fastapi import APIRouter, Depends, HTTPException
 
 from app.api.routes.batches import get_case_repo, get_obs_repo
-from app.api.schemas.api_models import CaseDetailResponse
+from app.api.schemas.api_models import AIExplainResponse, CaseActionRequest, CaseDetailResponse
 from app.persistence.case_repo import CaseRepository
 from app.persistence.observation_repo import ObservationRepository
 
@@ -56,6 +56,83 @@ def get_case(
     connected = [o.model_dump(mode="json") for o in all_obs if o.observation_id in c.observation_ids]
 
     # Fetch shadow events if any
+    shadow_events_serialized = [se.model_dump(mode="json") for se in c.shadow_events]
+
+    return CaseDetailResponse(
+        case_id=c.case_id,
+        batch_id=c.batch_id,
+        observation_ids=c.observation_ids,
+        residual_amount=float(c.residual_amount),
+        financial_impact=float(c.financial_impact),
+        scenario_id=c.scenario_id,
+        status=c.status,
+        pattern_cluster_id=c.pattern_cluster_id,
+        graph_json=c.graph_json,
+        shadow_events=shadow_events_serialized,
+        decision=c.decision.model_dump(mode="json") if c.decision else None,
+        observations=connected,
+    )
+
+
+@router.post("/{case_id}/explain", response_model=AIExplainResponse)
+def explain_case(
+    case_id: str,
+    case_repo: CaseRepository = Depends(get_case_repo),
+    obs_repo: ObservationRepository = Depends(get_obs_repo),
+) -> AIExplainResponse:
+    """Generate an evidence-grounded natural language investigation narrative."""
+    c = case_repo.get_case_by_id(case_id)
+    if not c:
+        raise HTTPException(status_code=404, detail=f"Case {case_id} not found")
+
+    all_obs = obs_repo.get_by_batch(c.batch_id)
+    case_obs = [o for o in all_obs if o.observation_id in c.observation_ids]
+
+    winning_hyp = None
+    if c.decision and c.decision.winning_hypothesis_id and c.hypotheses:
+        winning_hyp = next((h for h in c.hypotheses if h.hypothesis_id == c.decision.winning_hypothesis_id), None)
+    if not winning_hyp and c.hypotheses:
+        winning_hyp = c.hypotheses[0]
+
+    from app.engine.local_ai import LocalAIExplainer
+
+    explainer = LocalAIExplainer()
+    briefing = explainer.generate_case_explanation(
+        case=c,
+        observations=case_obs,
+        winning_hypothesis=winning_hyp,
+        decision=c.decision,
+    )
+
+    return AIExplainResponse(**briefing)
+
+
+@router.post("/{case_id}/action", response_model=CaseDetailResponse)
+def perform_case_action(
+    case_id: str,
+    action_req: CaseActionRequest,
+    case_repo: CaseRepository = Depends(get_case_repo),
+    obs_repo: ObservationRepository = Depends(get_obs_repo),
+) -> CaseDetailResponse:
+    """Operator human-in-the-loop action on a case (confirm, escalate, reject)."""
+    c = case_repo.get_case_by_id(case_id)
+    if not c:
+        raise HTTPException(status_code=404, detail=f"Case {case_id} not found")
+
+    if action_req.action == "confirm_settlement":
+        c.status = "manually_confirmed"
+    elif action_req.action == "escalate_ops":
+        c.status = "escalated_to_supervisor"
+    elif action_req.action == "reject_hypothesis":
+        c.status = "rejected"
+    else:
+        c.status = f"action_{action_req.action}"
+
+    # Update in duckdb
+    case_repo.save_cases([c])
+
+    all_obs = obs_repo.get_by_batch(c.batch_id)
+    connected = [o.model_dump(mode="json") for o in all_obs if o.observation_id in c.observation_ids]
     shadow_events_serialized = [se.model_dump(mode="json") for se in c.shadow_events]
 
     return CaseDetailResponse(

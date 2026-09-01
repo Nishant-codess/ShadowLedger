@@ -9,6 +9,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.api.routes import (
     batches_router,
     cases_router,
+    demo_router,
     health_router,
     metrics_router,
     patterns_router,
@@ -42,6 +43,7 @@ app.add_middleware(
 app.include_router(health_router)
 app.include_router(batches_router)
 app.include_router(cases_router)
+app.include_router(demo_router)
 app.include_router(metrics_router)
 app.include_router(patterns_router)
 

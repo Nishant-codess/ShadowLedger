@@ -4,6 +4,7 @@ from app.engine.decision_gate import DecisionRiskGate
 from app.engine.evidence_scorer import EvidenceScorer
 from app.engine.graph_builder import ValueFlowGraphBuilder
 from app.engine.hypothesis_engine import LatentHypothesisEngine
+from app.engine.local_ai import LocalAIExplainer
 from app.engine.miner import ExceptionMiner
 from app.engine.normalizer import normalize_amount, normalize_record, parse_utc_timestamp
 from app.engine.pattern_engine import CrossCasePatternEngine
@@ -16,6 +17,7 @@ __all__ = [
     "EvidenceScorer",
     "ValueFlowGraphBuilder",
     "LatentHypothesisEngine",
+    "LocalAIExplainer",
     "ExceptionMiner",
     "CrossCasePatternEngine",
     "DeterministicReconciler",

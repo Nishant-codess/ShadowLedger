@@ -75,3 +75,42 @@ class PatternClusterResponse(BaseModel):
     likely_common_cause: str
     evidence_strength: float
     created_at: datetime
+
+
+class HeroDemoResponse(BaseModel):
+    """Instant 1-click hero scenario response."""
+
+    hero_id: str
+    title: str
+    description: str
+    batch_summary: BatchSummaryResponse
+    cases: list[CaseDetailResponse] = Field(default_factory=list)
+    pattern_clusters: list[PatternClusterResponse] = Field(default_factory=list)
+
+
+class AIExplainResponse(BaseModel):
+    """Evidence-grounded natural language investigation narrative."""
+
+    case_id: str
+    headline: str
+    economic_story: str
+    policy_action: str
+    narrative: str
+    provider: str
+    hypothesis_type: str
+    taxonomy_level: str
+    evidence_confidence: float
+    decision: str
+    reason_codes: list[str] = Field(default_factory=list)
+    total_payment: float
+    total_settlement: float
+    residual_amount: float
+
+
+class CaseActionRequest(BaseModel):
+    """Operator action to confirm, escalate, or override a case decision."""
+
+    action: str  # e.g. "confirm_settlement", "escalate_ops", "reject_hypothesis"
+    operator_notes: str | None = None
+    operator_id: str = "FIN_OPS_USER"
+

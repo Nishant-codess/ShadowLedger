@@ -37,6 +37,13 @@ export default function RootLayout({
               <Link href="/exceptions" className="px-3 py-1.5 rounded-md hover:text-white hover:bg-slate-800/60 transition">
                 Exception Queue
               </Link>
+              <Link href="/patterns" className="px-3 py-1.5 rounded-md hover:text-white hover:bg-slate-800/60 transition flex items-center space-x-1">
+                <span className="w-1.5 h-1.5 rounded-full bg-purple-400"></span>
+                <span>Fleet Patterns (P0)</span>
+              </Link>
+              <Link href="/benchmark" className="px-3 py-1.5 rounded-md hover:text-white hover:bg-slate-800/60 transition">
+                Defensibility Benchmark
+              </Link>
             </nav>
           </div>
 
