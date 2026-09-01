@@ -1,9 +1,14 @@
-# Database Schema & Storage Architecture
+<div align="center">
 
-**Database Engine:** Embedded DuckDB (v1.4.5)  
-**Storage Paradigm:** File-Backed Columnar Engine with In-Memory Multi-Threaded Caching  
-**Concurrency Model:** Reentrant Thread Lock (`threading.RLock`) with Isolated Cursor Queries  
-**ACID Compliance:** Fully Atomized Transactions & Table-Level Consistency Invariants  
+# 🗄️ Database Schema & Storage Architecture
+
+### **ShadowLedger Embedded Columnar Storage Model**
+
+[![Database](https://img.shields.io/badge/Engine-DuckDB%201.4.5%20(Embedded)-F59E0B?style=for-the-badge&logo=duckdb)](file:///Users/nishant/Desktop/ShadowLedger/docs/DATABASE_SCHEMA.md)
+[![Concurrency](https://img.shields.io/badge/Concurrency-RLock%20Synchronized%20Queries-10B981?style=for-the-badge)](file:///Users/nishant/Desktop/ShadowLedger/docs/DATABASE_SCHEMA.md)
+[![Storage Type](https://img.shields.io/badge/Storage-Columnar%20File--Backed-6366F1?style=for-the-badge)](file:///Users/nishant/Desktop/ShadowLedger/docs/DATABASE_SCHEMA.md)
+
+</div>
 
 ---
 
@@ -11,103 +16,133 @@
 
 ```mermaid
 erDiagram
-    BATCHES ||--o{ OBSERVATIONS : contains
-    BATCHES ||--o{ INVENTORY_MOVEMENTS : contains
-    BATCHES ||--o{ CASES : generates
-    BATCHES ||--o{ PATTERN_CLUSTERS : discovers
-    CASES ||--o{ AUDIT_EVENTS : tracks
+    BATCHES ||--o{ OBSERVATIONS : "contains (1:N)"
+    BATCHES ||--o{ INVENTORY_MOVEMENTS : "contains (1:N)"
+    BATCHES ||--o{ CASES : "generates (1:N)"
+    BATCHES ||--o{ PATTERN_CLUSTERS : "discovers (1:N)"
+    CASES ||--o{ AUDIT_EVENTS : "tracks (1:N)"
 
     BATCHES {
-        string batch_id PK
-        timestamp created_at
-        integer total_records
-        integer matched_count
-        integer exception_count
-        decimal total_volume
-        decimal explained_volume
-        decimal unexplained_volume
-        string status
+        string batch_id PK "Unique Batch Identifier"
+        timestamp created_at "Batch Creation Timestamp"
+        integer total_records "Total Raw Ingested Count"
+        integer matched_count "Stage 1 Exact Matches"
+        integer exception_count "Unmatched Exceptions"
+        decimal total_volume "Gross Inflow (INR)"
+        decimal explained_volume "Model-Attributed Value (INR)"
+        decimal unexplained_volume "Residual Discrepancy (INR)"
+        string status "Processing Lifecycle State"
     }
 
     OBSERVATIONS {
-        string source_record_id PK
-        string batch_id FK
-        string source_system
-        decimal amount
-        string currency
-        timestamp timestamp
-        string order_id
-        string customer_id
-        string merchant_id
-        string payment_method
-        string status
-        json raw_metadata
+        string source_record_id PK "Immutable Record Identifier"
+        string batch_id FK "Parent Batch Reference"
+        string source_system "POS, Gateway, Bank, Ride"
+        decimal amount "Exact Numerical Amount"
+        string currency "ISO-4217 Currency (INR)"
+        timestamp timestamp "Canonical UTC Timestamp"
+        string order_id "Commercial Order ID"
+        string customer_id "Customer Identifier"
+        string merchant_id "Merchant Identifier"
+        string payment_method "UPI, CARD, CASH, WALLET"
+        string status "pending, matched, exception"
+        json raw_metadata "Original Source Attributes"
     }
 
     INVENTORY_MOVEMENTS {
-        string movement_id PK
-        string batch_id FK
-        string sku
-        string item_name
-        integer quantity
-        decimal unit_cost
-        decimal unit_retail_value
-        string direction
-        timestamp timestamp
-        string order_id
+        string movement_id PK "Physical Stock Movement ID"
+        string batch_id FK "Parent Batch Reference"
+        string sku "Stock Keeping Unit (e.g. CHOC-DM-02)"
+        string item_name "Product Description"
+        integer quantity "Units Transferred"
+        decimal unit_cost "Wholesale Cost Basis"
+        decimal unit_retail_value "Retail Sales Denomination"
+        string direction "inflow, outflow"
+        timestamp timestamp "Movement Timestamp"
+        string order_id "Linked Order Reference"
     }
 
     CASES {
-        string case_id PK
-        string batch_id FK
-        string order_id
-        string status
-        string priority
-        decimal unexplained_amount
-        decimal confidence
-        string confidence_tier
-        string decision
-        string selected_hypothesis
-        json hypotheses_payload
-        json graph_payload
-        json reason_codes
-        string ai_explanation
-        timestamp created_at
-        timestamp updated_at
+        string case_id PK "Investigation Dossier ID"
+        string batch_id FK "Parent Batch Reference"
+        string order_id "Associated Order ID"
+        string status "open, resolved, escalated, unresolved"
+        string priority "low, medium, high, critical"
+        decimal unexplained_amount "Discrepancy Magnitude"
+        decimal confidence "Calibrated Evidence Score [0, 1]"
+        string confidence_tier "DEFINITIVE, HIGH, MEDIUM, SPECULATIVE"
+        string decision "auto_resolve, human_review, unresolved"
+        string selected_hypothesis "refund, fee_adjustment, etc."
+        json hypotheses_payload "Full Candidate Hypotheses Array"
+        json graph_payload "Directed Graph Nodes & Edges"
+        json reason_codes "Deterministic Policy Justifications"
+        string ai_explanation "Local AI Narrative Summary"
+        timestamp created_at "Case Inception Timestamp"
+        timestamp updated_at "Last State Modification"
     }
 
     PATTERN_CLUSTERS {
-        string cluster_id PK
-        string batch_id FK
-        string pattern_signature
-        integer exception_count
-        decimal total_value_at_risk
-        decimal avg_discrepancy
-        decimal confidence
-        string likely_common_cause
-        json affected_case_ids
-        timestamp discovered_at
+        string cluster_id PK "Structural Cluster ID"
+        string batch_id FK "Parent Batch Reference"
+        string pattern_signature "FEE_ADJUSTMENT, OFF_LEDGER, etc."
+        integer exception_count "Total Aggregated Cases"
+        decimal total_value_at_risk "Cumulative Value Variance"
+        decimal avg_discrepancy "Mean Exception Size"
+        decimal confidence "Cluster Confidence Score"
+        string likely_common_cause "Root Cause Operational Insight"
+        json affected_case_ids "List of Linked Case UUIDs"
+        timestamp discovered_at "Discovery Timestamp"
     }
 
     AUDIT_EVENTS {
-        string event_id PK
-        string case_id FK
-        string action
-        string previous_state
-        string new_state
-        string operator_id
-        string notes
-        timestamp timestamp
+        string event_id PK "Audit Log Identifier"
+        string case_id FK "Subject Case Reference"
+        string action "accept, override, escalate, reject"
+        string previous_state "Prior Case Status"
+        string new_state "Updated Case Status"
+        string operator_id "Human Analyst Identifier"
+        string notes "Audit Justification Notes"
+        timestamp timestamp "Tamper-Evident Event Time"
     }
 ```
 
 ---
 
-## 2. Table Definitions & DDL Specifications
+## 2. Multi-Threaded Query Isolation & Concurrency Safety
 
-### 2.1 Table: `batches`
-Stores batch-level metadata, processing statistics, and execution summaries.
+```mermaid
+sequenceDiagram
+    autonumber
+    participant ThreadA as Worker Thread A (Batch Ingestion)
+    participant ThreadB as Worker Thread B (Case Review API)
+    participant DB as DatabaseManager (Singleton)
+    participant Lock as threading.RLock()
+    participant DuckDB as DuckDB Storage Engine
 
+    Note over DB: High-Concurrency Lock Isolation
+    ThreadA->>DB: execute_insert(batch_id, records)
+    DB->>Lock: acquire()
+    Lock-->>DB: Lock Granted
+    DB->>DuckDB: Open Dedicated Cursor & Execute Insert
+    DuckDB-->>DB: Commit Completed
+    DB->>Lock: release()
+
+    par Parallel Query Execution
+        ThreadB->>DB: get_case_by_id(case_id)
+        DB->>Lock: acquire()
+        Lock-->>DB: Lock Granted
+        DB->>DuckDB: Open Dedicated Cursor & Fetch Case JSON
+        DuckDB-->>DB: Row Returned
+        DB->>Lock: release()
+        DB-->>ThreadB: Return Case Dossier
+    end
+```
+
+---
+
+## 3. Detailed Table Specifications & SQL DDLs
+
+### 3.1 Table: `batches`
 ```sql
 CREATE TABLE IF NOT EXISTS batches (
     batch_id VARCHAR PRIMARY KEY,
@@ -122,11 +157,7 @@ CREATE TABLE IF NOT EXISTS batches (
 );
 ```
 
----
-
-### 2.2 Table: `observations` (Official Ledger)
-Represents immutable raw transaction events ingested directly from source payment gateways, point-of-sale systems, bank statements, and mobility ride logs.
-
+### 3.2 Table: `observations` (Official Ledger)
 ```sql
 CREATE TABLE IF NOT EXISTS observations (
     source_record_id VARCHAR PRIMARY KEY,
@@ -147,11 +178,7 @@ CREATE INDEX IF NOT EXISTS idx_obs_batch_order ON observations(batch_id, order_i
 CREATE INDEX IF NOT EXISTS idx_obs_timestamp ON observations(timestamp);
 ```
 
----
-
-### 2.3 Table: `inventory_movements`
-Captures non-monetary physical retail stock movements (e.g. Kirana chocolate change substitutions).
-
+### 3.3 Table: `inventory_movements`
 ```sql
 CREATE TABLE IF NOT EXISTS inventory_movements (
     movement_id VARCHAR PRIMARY KEY,
@@ -169,11 +196,7 @@ CREATE TABLE IF NOT EXISTS inventory_movements (
 CREATE INDEX IF NOT EXISTS idx_inv_order ON inventory_movements(order_id);
 ```
 
----
-
-### 2.4 Table: `cases` (Investigation Workbench Dossiers)
-Stores structured exception cases resulting from Stage 1 unmatched discrepancies, complete with graph topology, evaluated candidate hypotheses, and decision outcomes.
-
+### 3.4 Table: `cases` (Investigation Dossiers)
 ```sql
 CREATE TABLE IF NOT EXISTS cases (
     case_id VARCHAR PRIMARY KEY,
@@ -198,11 +221,7 @@ CREATE INDEX IF NOT EXISTS idx_cases_batch_status ON cases(batch_id, status);
 CREATE INDEX IF NOT EXISTS idx_cases_priority ON cases(priority);
 ```
 
----
-
-### 2.5 Table: `pattern_clusters` (Fleet Pattern Discovery)
-Stores structural anomaly patterns detected across multiple cases.
-
+### 3.5 Table: `pattern_clusters`
 ```sql
 CREATE TABLE IF NOT EXISTS pattern_clusters (
     cluster_id VARCHAR PRIMARY KEY,
@@ -220,11 +239,7 @@ CREATE TABLE IF NOT EXISTS pattern_clusters (
 CREATE INDEX IF NOT EXISTS idx_patterns_batch ON pattern_clusters(batch_id);
 ```
 
----
-
-### 2.6 Table: `audit_events` (Immutable Audit Trail)
-Maintains a tamper-evident log of human operator decisions, hypothesis approvals, overrides, and notes.
-
+### 3.6 Table: `audit_events`
 ```sql
 CREATE TABLE IF NOT EXISTS audit_events (
     event_id VARCHAR PRIMARY KEY,
@@ -239,13 +254,3 @@ CREATE TABLE IF NOT EXISTS audit_events (
 
 CREATE INDEX IF NOT EXISTS idx_audit_case ON audit_events(case_id);
 ```
-
----
-
-## 3. Concurrency, Multi-Threading & Transaction Safety
-
-To support high-concurrency read/write operations (e.g. concurrent batch ingestion while operators review cases in real-time), DuckDB access is encapsulated within `DatabaseManager` (`apps/api/app/persistence/database.py`):
-
-1. **Reentrant Lock Synchronization (`threading.RLock`):** All database operations execute within synchronized blocks (`with self._lock:`), guaranteeing thread isolation across multiple async FastAPI worker threads.
-2. **Dedicated Read Cursors:** Every query instantiates a dedicated local cursor (`cursor = self._conn.cursor()`) rather than reusing a shared connection handle, preventing `InvalidInputException` errors from simultaneous pending queries.
-3. **Immutability of Source Facts:** Queries that generate candidate reconstructions write strictly to `cases` and `pattern_clusters`, preserving the raw integrity of `observations` at all times.

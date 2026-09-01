@@ -1,107 +1,90 @@
-# System Architecture & API Specification
+<div align="center">
 
-**System Name:** ShadowLedger Value-Flow Reconstruction Engine  
-**Version:** 1.0.0 (Production Final)  
-**Architecture Paradigm:** Local-First &bull; Deterministic Authority &bull; Graph-Inference Pipeline &bull; Embedded DuckDB  
+# 🏗️ System Architecture & REST API Specification
+
+### **ShadowLedger: Uncertainty-Aware Value-Flow Reconstruction Engine**
+
+[![Architecture Paradigm](https://img.shields.io/badge/Architecture-Local--First%20%7C%20Graph--Pipeline-8B5CF6?style=for-the-badge)](file:///Users/nishant/Desktop/ShadowLedger/docs/SYSTEM_ARCHITECTURE.md)
+[![Database](https://img.shields.io/badge/Storage-Embedded%20DuckDB%201.4.5-F59E0B?style=for-the-badge&logo=duckdb)](file:///Users/nishant/Desktop/ShadowLedger/docs/SYSTEM_ARCHITECTURE.md)
+[![API Engine](https://img.shields.io/badge/API-FastAPI%20High--Concurrency-009688?style=for-the-badge&logo=fastapi)](file:///Users/nishant/Desktop/ShadowLedger/docs/SYSTEM_ARCHITECTURE.md)
+
+</div>
 
 ---
 
-## 1. High-Level Architectural Overview
+## 1. High-Level C4 Component Diagram
 
-ShadowLedger operates on a layered, pipeline architecture designed for high throughput, auditable evidence generation, and absolute zero reliance on external paid cloud APIs.
+```mermaid
+C4Component
+    title Component Diagram for ShadowLedger Reconstruction Engine
 
-```
-                     ┌────────────────────────────────────────────────────────┐
-                     │          INGESTION & NORMALIZATION LAYER               │
-                     │  - Multi-source logs (POS, Gateway, Bank, Ride, Inv)   │
-                     │  - Timestamp Canonicalization (UTC) & Exact Decimals   │
-                     └───────────────────────────┬────────────────────────────┘
-                                                 │
-                                                 ▼
-                     ┌────────────────────────────────────────────────────────┐
-                     │     STAGE 1: HIGH-THROUGHPUT DETERMINISTIC RECONCILER  │
-                     │  - Exact 1-to-1 Matches & Fee Balanced Pairs           │
-                     │  - Non-Monetary Inventory Settlements (Kirana Candy)   │
-                     │  - Multi-Source Dual Payment Deduplication             │
-                     └───────────────────────────┬────────────────────────────┘
-                                                 │
-                                    ┌────────────┴────────────┐
-                                    │                         │
-                           [Deterministic Matches]   [Unmatched Exceptions]
-                                    │                         │
-                                    ▼                         ▼
-                        ┌───────────────────────┐ ┌───────────────────────────────────┐
-                        │   MATCHED RECONCILED  │ │  STAGE 2: VALUE-FLOW ENGINE       │
-                        │   (Official Ledger)   │ │  - Case-Local Value Graph Builder │
-                        │                       │ │  - Latent Hypothesis Generator    │
-                        │                       │ │  - 7D Mathematical Evidence Scorer│
-                        │                       │ │  - Hardened Decision Risk Gates   │
-                        │                       │ │  - Fleet Cross-Case Pattern Engine│
-                        │                       │ │  - Shadow Ledger Candidate Events │
-                        └───────────────────────┘ └─────────────────┬─────────────────┘
-                                                                    │
-                                                                    ▼
-                                                  ┌───────────────────────────────────┐
-                                                  │       PERSISTENCE & APIS          │
-                                                  │  - Embedded DuckDB 1.4.5 (ACID)   │
-                                                  │  - FastAPI High-Concurrency Server│
-                                                  │  - Next.js 16.3 Modern Workbench  │
-                                                  └───────────────────────────────────┘
+    Container_Boundary(api_boundary, "FastAPI Application Server (Python 3.12+)") {
+        Component(ingest_mod, "Normalizer & Ingest Module", "Python Decimal & UTC", "Normalizes raw multi-source streams")
+        Component(reconciler_mod, "Deterministic Reconciler", "Stage 1 Exact Match", "Resolves 1-to-1 matches, fee schedules, & candy change at 300k+ rec/s")
+        Component(graph_builder, "Value-Flow Graph Builder", "NetworkX Multigraph", "Builds directed economic transaction networks")
+        Component(hypo_engine, "Latent Hypothesis Engine", "Constraint Logic", "Generates candidate economic explanations")
+        Component(scorer_mod, "7D Evidence Scorer", "Mathematical Calibration", "Evaluates hypotheses across 7 invariants")
+        Component(gate_mod, "Decision Risk Gate", "Auditable Invariants", "Enforces Auto-Resolve vs Human Review")
+        Component(pattern_engine, "Fleet Pattern Engine", "Signature Clustering", "Groups batch exceptions into structural clusters")
+        Component(db_manager, "Database Manager", "DuckDB 1.4.5 + RLock", "Thread-safe ACID persistence")
+        Component(ai_explainer, "Local AI Explainer", "Ollama / Template Fallback", "Generates operator-facing audit narratives")
+    }
+
+    ContainerDb(duckdb, "Embedded DuckDB Storage", "DuckDB File / In-Memory", "Stores observations, cases, patterns, and audit events")
+    Container(next_app, "Next.js 16 Web Dashboard", "React, TypeScript, Tailwind", "Interactive investigation workbench and graph visualizer")
+
+    Rel(ingest_mod, reconciler_mod, "Passes canonical records")
+    Rel(reconciler_mod, db_manager, "Saves matched records")
+    Rel(reconciler_mod, graph_builder, "Passes unmatched exceptions")
+    Rel(graph_builder, hypo_engine, "Supplies graph topology")
+    Rel(hypo_engine, scorer_mod, "Scores candidate hypotheses")
+    Rel(scorer_mod, gate_mod, "Evaluates confidence & materiality")
+    Rel(gate_mod, pattern_engine, "Passes case decisions")
+    Rel(pattern_engine, db_manager, "Persists cases & pattern clusters")
+    Rel(db_manager, duckdb, "ACID Read / Write Queries")
+    Rel(next_app, db_manager, "Queries cases & benchmarks via REST API")
+    Rel(ai_explainer, next_app, "Supplies structured explanation narratives")
 ```
 
 ---
 
-## 2. The 7-Stage Value-Flow Reconstruction Pipeline
+## 2. End-to-End Batch Processing Sequence
 
-### Stage 1: Ingestion & Normalization (`app.data.normalize`)
-- Converts raw input dictionaries, JSON strings, or CSV files into canonical `ObservationRecord` and `InventoryMovement` models.
-- Parses diverse timestamp formats (ISO-8601, RFC-2822, custom dates) into canonical UTC datetime strings.
-- Enforces high-precision Python `Decimal` arithmetic to eliminate floating-point rounding errors.
+```mermaid
+sequenceDiagram
+    autonumber
+    actor Operator as Financial Analyst
+    participant Web as Next.js Dashboard
+    participant API as FastAPI Router
+    participant Engine as ShadowEngine Pipeline
+    participant DB as DuckDB (with RLock)
+    participant AI as Local AI / Fallback
 
-### Stage 2: Deterministic Baseline Reconciliation (`app.engine.reconciler`)
-- Groups records by `order_id` / `source_record_id`.
-- Resolves exact 1-to-1 matches (`POS == Bank`).
-- Balances standard fee deductions (`POS - Fee == Bank`).
-- Resolves Kirana non-monetary physical change substitutions (`POS - Inventory == Bank`).
-- Deduplicates multi-source capture legs where both POS and Gateway record identical amounts for the same order.
-- Yields a **Stage 1 Baseline Match Rate** ($81.57\%$ on benchmark datasets).
+    Operator->>Web: Submits Transaction Batch (JSON/CSV)
+    Web->>API: POST /api/batch/process
+    API->>Engine: Normalizes & Ingests Records
+    
+    rect rgb(240, 253, 244)
+        Note over Engine: Stage 1: Deterministic Baseline
+        Engine->>Engine: Reconcile 1-to-1 exact matches & candy inventory
+        Engine->>DB: Record Matched Transactions (Official Ledger)
+    end
 
-### Stage 3: Case-Local Value Graph Construction (`app.engine.graph_builder`)
-- For all unmatched records, constructs a directed value-flow graph $G = (V, E)$.
-- **Nodes ($V$):** Entity accounts, external ledgers, inventory pools, and observed transaction events.
-- **Edges ($E$):** Value transfers labeled with amount, currency, direction, and evidence provenance.
+    rect rgb(245, 243, 255)
+        Note over Engine: Stage 2: Value-Flow Graph Inference
+        Engine->>Engine: Construct Case-Local Directed Multigraphs
+        Engine->>Engine: Synthesize Candidate Latent Hypotheses
+        Engine->>Engine: Score Evidence across 7 Mathematical Dimensions
+        Engine->>Engine: Enforce Decision Risk Gates (Never Auto-Resolve Cash)
+        Engine->>Engine: Cluster Batch Exceptions into Pattern Families
+    end
 
-### Stage 4: Latent Hypothesis Generation (`app.engine.hypothesis_engine`)
-- Synthesizes candidate economic explanations for unresolved balances:
-  - `REFUND`: Customer return / partial refund cycle.
-  - `FEE_ADJUSTMENT`: Unrecorded payment gateway MDR surcharge.
-  - `INVENTORY_SETTLEMENT`: Physical commodity substitution.
-  - `TIMING_OFFSET`: Delayed settlement window (T+1/T+2).
-  - `STORE_CREDIT`: Customer wallet or credit carry-forward.
-  - `OFF_LEDGER_DEVIATION`: Unobserved cash or direct driver UPI QR transaction.
-
-### Stage 5: 7-Dimensional Evidence Scoring & Decision Risk Gate (`app.engine.evidence_scorer`, `app.engine.decision_gate`)
-- Evaluates hypotheses against mathematical invariants:
-  1. *Conservation of Value*: $\Delta = \sum \text{Inflow} - \sum \text{Outflow} = 0$.
-  2. *Temporal Plausibility*: Plausible business sequencing and timing drift penalty.
-  3. *Entity Linkage*: Shared merchant, customer, order, or trip IDs.
-  4. *Observation Coverage*: Ratio of explained input records.
-  5. *Domain Rule Fit*: Standard fee percentages ($1.5\% - 2.5\%$) and retail denominations.
-  6. *Parsimony Penalty*: Occam's razor penalty on unverified multi-step paths.
-  7. *Contradiction Penalty*: Strict disqualification on entity conflicts.
-- **Decision Gates:**
-  - `AUTO_RESOLVE`: Permitted only for Level 1/2/3 events with confidence $\ge 0.85$ and materiality $< ₹5,000$.
-  - `HUMAN_REVIEW`: Mandatory for all Level 4 (`OFF_LEDGER_DEVIATION`) events, high materiality, or moderate confidence ($0.60 \le \text{conf} < 0.85$).
-  - `UNRESOLVED`: Safe refusal when evidence is absent ($< 0.60$). Zero hallucination.
-
-### Stage 6: Fleet Cross-Case Pattern Discovery (`app.engine.pattern_engine`)
-- Scans all exception cases across the ingested batch.
-- Clusters cases by signature (`REFUND`, `OFF_LEDGER_DEVIATION`, `FEE_ADJUSTMENT`, `INVENTORY_SETTLEMENT`).
-- Computes aggregate value at risk, average variance, and produces structural operational insights.
-
-### Stage 7: Shadow Ledger & Provenance Audit Trail (`app.engine.shadow_ledger`)
-- Generates candidate `ShadowEvent` records representing the reconstructed economic state.
-- Stores immutable audit logs documenting hypothesis selection, rule execution, and operator overrides.
+    Engine->>DB: Persist Cases, Hypotheses & Pattern Clusters
+    API->>AI: Synthesize Narrative Explanations
+    AI-->>API: Return Structured Briefings
+    API-->>Web: Return Batch Execution Metrics & Case Summaries
+    Web-->>Operator: Display Interactive Command Center & Visual Graphs
+```
 
 ---
 
@@ -110,8 +93,10 @@ ShadowLedger operates on a layered, pipeline architecture designed for high thro
 Base URL: `http://localhost:8000`
 
 ### 3.1 System Health
-#### `GET /health`
-- **Description:** Checks server availability and database connectivity.
+```http
+GET /health
+```
+- **Description:** Verifies server availability, database connectivity, and engine version.
 - **Response `200 OK`:**
 ```json
 {
@@ -125,7 +110,9 @@ Base URL: `http://localhost:8000`
 ---
 
 ### 3.2 Batch Ingestion & Processing
-#### `POST /api/batch/process`
+```http
+POST /api/batch/process
+```
 - **Description:** Ingests and processes a multi-source transaction batch through the 7-stage reconstruction pipeline.
 - **Request Body:**
 ```json
@@ -183,14 +170,11 @@ Base URL: `http://localhost:8000`
 
 ---
 
-### 3.3 Cases & Investigations
-#### `GET /api/cases`
-- **Description:** Lists investigation cases with optional filtering by status, priority, and batch.
-- **Query Parameters:**
-  - `status` (*string*, optional): `open`, `resolved`, `escalated`, `unresolved`
-  - `priority` (*string*, optional): `low`, `medium`, `high`, `critical`
-  - `batch_id` (*string*, optional)
-  - `limit` (*integer*, default: 50)
+### 3.3 Investigation Cases & Actions
+```http
+GET /api/cases
+```
+- **Query Parameters:** `status` (open/resolved/escalated/unresolved), `priority` (low/medium/high/critical), `batch_id`, `limit`.
 - **Response `200 OK`:**
 ```json
 {
@@ -211,15 +195,16 @@ Base URL: `http://localhost:8000`
 }
 ```
 
-#### `GET /api/cases/{case_id}`
-- **Description:** Retrieves detailed case dossier including graph nodes/edges, evaluated hypotheses, evidence breakdown, and local AI synthesis.
+```http
+GET /api/cases/{case_id}
+```
+- **Description:** Returns full investigation dossier with graph nodes/edges, 7D evidence scores, and local AI explanation.
 - **Response `200 OK`:**
 ```json
 {
   "case_id": "case_507805805fff",
   "batch_id": "hero_kirana_demo",
   "order_id": "ORD-KIRANA-001",
-  "records": [...],
   "graph": {
     "nodes": [
       {"id": "entity:CUST-01", "type": "customer", "label": "Customer 01"},
@@ -255,15 +240,17 @@ Base URL: `http://localhost:8000`
 }
 ```
 
-#### `POST /api/cases/{case_id}/action`
-- **Description:** Executes human operator action (Accept Hypothesis, Override Decision, Escalate, or Reject).
+```http
+POST /api/cases/{case_id}/action
+```
+- **Description:** Human operator action (Accept Hypothesis, Override Decision, Escalate).
 - **Request Body:**
 ```json
 {
   "action": "accept",
   "hypothesis_id": "hyp_01",
   "operator_id": "analyst_arjun",
-  "notes": "Verified chocolate inventory movement against Kirana daily register."
+  "notes": "Verified chocolate inventory movement against Kirana register."
 }
 ```
 - **Response `200 OK`:**
@@ -279,10 +266,10 @@ Base URL: `http://localhost:8000`
 ---
 
 ### 3.4 Fleet Pattern Discovery
-#### `GET /api/patterns`
-- **Description:** Retrieves discovered systemic pattern clusters across cases.
-- **Query Parameters:**
-  - `batch_id` (*string*, optional)
+```http
+GET /api/patterns
+```
+- **Description:** Returns structural pattern clusters across cases.
 - **Response `200 OK`:**
 ```json
 {
@@ -315,43 +302,9 @@ Base URL: `http://localhost:8000`
 
 ---
 
-### 3.5 Dynamic Benchmark Metrics
-#### `GET /api/metrics/benchmark`
-- **Description:** Returns ground-truth evaluated benchmark performance comparing Stage 1 baseline against the full ShadowLedger engine across all 12 economic scenario families.
-- **Response `200 OK`:**
-```json
-{
-  "batch_id": "benchmark_s42_r10000",
-  "records": 10000,
-  "baseline": {
-    "matched_count": 8157,
-    "exception_count": 1843,
-    "match_rate": 81.57,
-    "explained_volume": 49312472.31,
-    "unexplained_volume": 1458139.00
-  },
-  "enhanced": {
-    "cases_count": 969,
-    "auto_resolved_count": 0,
-    "human_review_count": 831,
-    "unresolved_count": 138,
-    "latent_hypothesis_accuracy": 100.0,
-    "explained_volume": 50770611.31,
-    "unexplained_volume": 174730.56,
-    "scenario_breakdown": {
-      "SCN_01": {"total": 1880, "exact_matches": 1880, "structured_cases": 0, "auto_resolved": 0, "human_review": 0, "unresolved": 0, "hypotheses_evaluated": 0, "correct_hypotheses": 0, "evaluation_mode": "clean_match"},
-      "SCN_08": {"total": 100, "exact_matches": 0, "structured_cases": 100, "auto_resolved": 0, "human_review": 100, "unresolved": 0, "hypotheses_evaluated": 100, "correct_hypotheses": 100, "evaluation_mode": "latent_event"},
-      "SCN_09": {"total": 72, "exact_matches": 0, "structured_cases": 72, "auto_resolved": 0, "human_review": 0, "unresolved": 72, "hypotheses_evaluated": 0, "correct_hypotheses": 0, "evaluation_mode": "unobserved_deviation"},
-      "SCN_10": {"total": 66, "exact_matches": 0, "structured_cases": 66, "auto_resolved": 0, "human_review": 0, "unresolved": 66, "hypotheses_evaluated": 0, "correct_hypotheses": 0, "evaluation_mode": "pattern_clustering"}
-    }
-  }
-}
+### 3.5 Dynamic Benchmark Endpoint
+```http
+GET /api/metrics/benchmark
 ```
-
----
-
-### 3.6 Curated Hero Demonstrations
-#### `POST /api/demo/hero/{hero_id}`
-- **Parameters:**
-  - `hero_id`: `hero_a`, `hero_b`, `hero_c`
-- **Description:** Seeds and executes one of the three curated hero scenarios and returns live engine results for instant interactive evaluation.
+- **Description:** Returns ground-truth evaluated benchmark performance comparing Stage 1 baseline against the full ShadowLedger engine across all 12 economic scenario families.
+- **Response `200 OK`:** Returns structured comparison metrics and per-scenario breakdowns.

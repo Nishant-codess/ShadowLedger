@@ -1,93 +1,113 @@
-# Software Test Plan, Verification & Audit Results
+<div align="center">
 
-**Document Standard:** Aligned with IEEE 829 Standard for Software Test Documentation  
-**System:** ShadowLedger Value-Flow Reconstruction Engine  
-**Version:** 1.0.0 (Production Final)  
-**Test Execution Status:** 100% Passed (59 Unit Tests &bull; 2 Ground-Truth Benchmarks &bull; Remote CI Passed)  
+# 🧪 Software Test Plan, Verification & Audit Results
+
+### **IEEE 829 Standard Test Specifications for ShadowLedger**
+
+[![Test Results](https://img.shields.io/badge/Pytest-59%20%2F%2059%20Passed-10B981?style=for-the-badge&logo=pytest)](file:///Users/nishant/Desktop/ShadowLedger/docs/TEST_PLAN_AND_RESULTS.md)
+[![Static Analysis](https://img.shields.io/badge/Static%20Analysis-Ruff%20%26%20Mypy%20Clean-6366F1?style=for-the-badge)](file:///Users/nishant/Desktop/ShadowLedger/docs/TEST_PLAN_AND_RESULTS.md)
+[![Safety Audit](https://img.shields.io/badge/Safety%20Invariant-0%20False%20Auto--Resolutions-3B82F6?style=for-the-badge)](file:///Users/nishant/Desktop/ShadowLedger/docs/TEST_PLAN_AND_RESULTS.md)
+
+</div>
 
 ---
 
-## 1. Test Strategy & Scope
+## 1. Verification Pyramid & Test Architecture
 
-The ShadowLedger testing strategy is organized into a four-tier verification pyramid:
+```mermaid
+graph TD
+    subgraph PYRAMID ["Testing & Verification Pyramid"]
+        E2E["1. End-to-End Benchmarks (10k Records & Seeds 42/999)<br/>Ground-Truth Mathematical Reconciliation Proofs"]
+        ADV["2. Adversarial & Security Test Suite<br/>Near-Match Deceptions, Prompt Injection, Temporal Contradictions"]
+        CONC["3. Concurrency & Thread-Safety Tests<br/>Multi-Threaded DuckDB RLock Isolation & Parallel Queries"]
+        UNIT["4. Unit & Normalization Logic Tests (38 Tests)<br/>Decimals, UTC Timestamps, Hypotheses, Reconciler Math"]
+    end
 
+    UNIT --> CONC
+    CONC --> ADV
+    ADV --> E2E
+
+    classDef uStyle fill:#1e1b4b,stroke:#818cf8,stroke-width:2px,color:#fff;
+    classDef cStyle fill:#064e3b,stroke:#34d399,stroke-width:2px,color:#fff;
+    classDef aStyle fill:#451a03,stroke:#f59e0b,stroke-width:2px,color:#fff;
+    classDef eStyle fill:#4c1d95,stroke:#a78bfa,stroke-width:2px,color:#fff;
+
+    class UNIT uStyle;
+    class CONC cStyle;
+    class ADV aStyle;
+    class E2E eStyle;
 ```
-                            ▲
-                           / \
-                          /   \
-                         /     \
-                        /   E2E \      [10k Multi-Scenario Benchmarks & Hero Demos]
-                       /─────────\
-                      / Adversary \    [Adversarial Attacks & Decision Invariants]
-                     /─────────────\
-                    /  Concurrency  \  [Multi-Threaded DuckDB Lock & Query Safety]
-                   /─────────────────\
-                  /    Unit & Logic   \ [Normalization, Math Reconciler, Hypotheses]
-                 /─────────────────────\
-```
 
 ---
 
-## 2. Test Suites & Coverage Breakdown
+## 2. Adversarial & Security Attack Matrix
 
-### 2.1 Unit & Logic Tests (38 Tests)
-- **Data Normalization (`test_normalizer.py`, `test_ingest.py`):**
-  - Canonical timestamp parsing across UTC/ISO/RFC formats.
-  - High-precision Decimal amount cleaning and malformed row isolation.
-  - Inventory movement normalization and schema validation.
-- **Deterministic Reconciler (`test_reconciler.py`):**
-  - Exact 1-to-1 match resolution (`POS == Bank`).
-  - Standard fee-balanced matching (`POS - 2% MDR == Bank`).
-  - Kirana non-monetary inventory change settlement (`POS - Candy == Bank`).
-  - Dual payment leg deduplication (identical POS and Gateway amounts for single order).
-- **Graph & Hypothesis Engine (`test_graph_builder.py`, `test_hypothesis_engine.py`):**
-  - Node and edge construction with provenance labels.
-  - Multi-hypothesis generation (`refund`, `fee_adjustment`, `store_credit`, `timing_offset`, `off_ledger_deviation`).
-- **Evidence Scorer & Decision Gates (`test_evidence_scorer.py`, `test_decision_gate.py`):**
-  - 7D mathematical confidence calibration.
-  - Scale invariance (scoring depends on evidence, not monetary scale).
-  - Materiality ceiling and off-ledger auto-resolve prohibition.
-- **Pattern Engine & Persistence (`test_pattern_engine.py`, `test_database.py`, `test_shadow_ledger.py`):**
-  - Cross-case signature clustering.
-  - Roundtrip persistence of observations, inventory, cases, and batches in DuckDB.
-  - Immutable audit trail provenance recording.
+<table>
+  <thead>
+    <tr style="background-color: #1e1b4b; color: #ffffff;">
+      <th>Test ID</th>
+      <th>Adversarial Attack Vector</th>
+      <th>Injected Anomaly / Exploit</th>
+      <th>Enforced Safety Invariant</th>
+      <th>Audit Status</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><b>ADV-01</b></td>
+      <td><b>Deceptive Near-Match</b></td>
+      <td>Amount discrepancy of ₹0.50 with conflicting merchant entity IDs.</td>
+      <td>Must NOT auto-resolve; contradiction penalty immediately applied.</td>
+      <td><span style="color:#10B981">● PASSED</span></td>
+    </tr>
+    <tr>
+      <td><b>ADV-02</b></td>
+      <td><b>Impossible Temporal Sequence</b></td>
+      <td>Bank settlement timestamp occurs before POS order creation.</td>
+      <td>Penalizes temporal score; escalates to human review.</td>
+      <td><span style="color:#10B981">● PASSED</span></td>
+    </tr>
+    <tr>
+      <td><b>ADV-03</b></td>
+      <td><b>Invisible Cash Deviation</b></td>
+      <td>Off-ledger physical cash payment with zero digital trace.</td>
+      <td>Strict safety refusal $\rightarrow$ safely returned as <code>UNRESOLVED</code>.</td>
+      <td><span style="color:#10B981">● PASSED</span></td>
+    </tr>
+    <tr>
+      <td><b>ADV-04</b></td>
+      <td><b>Extreme Timing Drift</b></td>
+      <td>Settlement offset exceeds standard 30-day business window.</td>
+      <td>Decays temporal confidence; blocks automated clearing.</td>
+      <td><span style="color:#10B981">● PASSED</span></td>
+    </tr>
+    <tr>
+      <td><b>ADV-05</b></td>
+      <td><b>Competing Merchants</b></td>
+      <td>Conflicting merchant identifiers on identical order reference.</td>
+      <td>Disqualifies hypothesis on entity contradiction.</td>
+      <td><span style="color:#10B981">● PASSED</span></td>
+    </tr>
+    <tr>
+      <td><b>ADV-06</b></td>
+      <td><b>Prompt Injection Exploit</b></td>
+      <td>Ingested metadata contains malicious LLM override prompts.</td>
+      <td>Sanitizer strips instruction; local AI remains secure.</td>
+      <td><span style="color:#10B981">● PASSED</span></td>
+    </tr>
+    <tr>
+      <td><b>ADV-07</b></td>
+      <td><b>Offline AI Outage Fallback</b></td>
+      <td>Local LLM server is unreachable or times out.</td>
+      <td>Instant fallback to deterministic template synthesizer.</td>
+      <td><span style="color:#10B981">● PASSED</span></td>
+    </tr>
+  </tbody>
+</table>
 
 ---
 
-### 2.2 Adversarial & Security Test Suite (7 Tests)
-Located in `apps/api/tests/test_adversarial_suite.py` and `test_adversarial.py`:
-
-| Test ID | Test Scenario | Attack / Edge Vector | Expected Invariant | Result |
-| :--- | :--- | :--- | :--- | :--- |
-| **ADV-01** | Deceptive Near-Match | Amount discrepancy of ₹0.50 with conflicting entity IDs | Must NOT auto-resolve; flag contradiction penalty | ✅ PASS |
-| **ADV-02** | Impossible Sequence | Bank deposit timestamp occurs before POS order creation | Penalize temporal score; escalate to human review | ✅ PASS |
-| **ADV-03** | Invisible Cash Deviation | Off-ledger cash payment with zero digital trace | Strict safety refusal $\rightarrow$ `UNRESOLVED` | ✅ PASS |
-| **ADV-04** | Extreme Timing Drift | Settlement offset exceeds 30-day business window | Decay temporal confidence $\rightarrow$ require human review | ✅ PASS |
-| **ADV-05** | Competing Merchants | Conflicting merchant identifiers on identical order ID | Trigger contradiction penalty $\rightarrow$ reject hypothesis | ✅ PASS |
-| **ADV-06** | Prompt Injection | Ingested notes contain malicious prompt override instructions | Sanitizer strips instruction; local AI remains robust | ✅ PASS |
-| **ADV-07** | Offline AI Graceful Fallback | Local LLM server is unreachable or times out | Instant fallback to deterministic template synthesizer | ✅ PASS |
-
----
-
-### 2.3 Concurrency & Thread-Safety Test Suite (8 Tests)
-Located in `apps/api/tests/test_concurrency.py`:
-
-| Test ID | Scenario | Concurrency Level | Invariant Enforced | Result |
-| :--- | :--- | :--- | :--- | :--- |
-| **CONC-01** | Concurrent Metrics Reads | 10 parallel threads querying `/api/metrics` | Zero cursor lock contention or 500 errors | ✅ PASS |
-| **CONC-02** | Repeated Cases Requests | 15 parallel requests querying `/api/cases` | All threads receive HTTP 200 with valid JSON | ✅ PASS |
-| **CONC-03** | Concurrent Pattern Requests | 10 parallel requests to `/api/patterns` | Consistent cluster counts across all threads | ✅ PASS |
-| **CONC-04** | Simultaneous Benchmarks | 5 simultaneous benchmark runs | Thread-safe database writes and isolation | ✅ PASS |
-| **CONC-05** | Metrics during Benchmark | Read metrics while 10k benchmark processes | Reader threads complete without blocking | ✅ PASS |
-| **CONC-06** | Cases during Ingestion | Query cases while ingesting large batch | Non-blocking read operations | ✅ PASS |
-| **CONC-07** | Multi-Threaded DB Writes | 20 threads writing observations simultaneously | Strict ACID transactions in DuckDB | ✅ PASS |
-| **CONC-08** | Sequential Baseline Check | Sequential baseline execution consistency | Exact metric reproducibility | ✅ PASS |
-
----
-
-## 3. Ground-Truth 10,000-Record Benchmark Execution Results
-
-### 3.1 Primary Evaluation (Seed 42)
+## 3. Authoritative 10,000-Record Ground-Truth Benchmark Audit
 
 ```
         Scenario-by-Scenario Evaluation Breakdown (Ground-Truth Audited)        
@@ -111,18 +131,14 @@ Located in `apps/api/tests/test_concurrency.py`:
 └─────────────┴───────┴───────┴───────┴───────┴───────┴───────┴───────┴────────┘
 ```
 
-### 3.2 Held-Out Generalization Evaluation (Seed 999)
-- **Baseline Match Rate:** $81.57\%$ (8,157 / 10,000 records)
-- **Synthetic Scenario Hypothesis Alignment:** **100.00% (1,596 / 1,596)**
-- **Unsafe False Auto-Resolutions:** **0 (100% Policy Safe)**
-- **Stage 2 Winning Latent Hypotheses:** 632 / 632 ($100.0\%$)
-- **UNKNOWN Cases:** **0**
-
 ---
 
-## 4. Continuous Integration (CI) Audit
+## 4. CI/CD Quality Gate Results
 
-Remote GitHub Actions Run `33497433095` on commit `3191303`:
-- `backend`: ✅ PASSED (57s) — Ruff, Mypy, 59 Pytest tests
-- `frontend`: ✅ PASSED (40s) — ESLint, TypeScript compiler, Next.js build
-- `smoke`: ✅ PASSED (33s) — Benchmark validation & End-to-end integration
+```text
+✓ backend in 43s   (Ruff, Mypy, 59 Pytest tests passed)
+✓ frontend in 51s  (ESLint, TypeScript compiler, Next.js build passed)
+✓ smoke in 37s     (Benchmark harness check & end-to-end integration passed)
+────────────────────────────────────────────────────────────────────────
+STATUS: All 3 GitHub Actions CI Jobs PASSED on commit 0e8695b
+```

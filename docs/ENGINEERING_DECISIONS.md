@@ -1,117 +1,177 @@
-# Architecture Decision Records (ADRs) & Engineering Tradeoffs
+<div align="center">
 
-**System:** ShadowLedger Value-Flow Reconstruction Engine  
-**Status:** Accepted & Implemented  
-**Date:** September 2026  
+# 🏛️ Architecture Decision Records (ADRs)
 
----
+### **Key Technical Tradeoffs & Architectural Invariants**
 
-## ADR-001: Zero-Paid-API Architecture & Deterministic Fallback Authority
+[![ADR Status](https://img.shields.io/badge/Status-7%20Accepted%20%26%20Implemented-10B981?style=for-the-badge)](file:///Users/nishant/Desktop/ShadowLedger/docs/ENGINEERING_DECISIONS.md)
+[![Architecture Paradigm](https://img.shields.io/badge/Design-Deterministic%20Core%20Authority-6366F1?style=for-the-badge)](file:///Users/nishant/Desktop/ShadowLedger/docs/ENGINEERING_DECISIONS.md)
+[![Review Gate](https://img.shields.io/badge/Review-Audit%20Compliant-3B82F6?style=for-the-badge)](file:///Users/nishant/Desktop/ShadowLedger/docs/ENGINEERING_DECISIONS.md)
 
-### Context
-Financial reconciliation systems in high-volume environments (10,000+ daily exceptions) cannot rely on non-deterministic, high-latency, and cost-prohibitive cloud LLM APIs (e.g. GPT-4 / Claude) for real-time mathematical reasoning and transaction balancing.
-
-### Decision
-- **Core Truth Authority:** Mathematical reconciliation, value-flow conservation, hypothesis scoring, and decision gates are executed strictly by deterministic Python algorithms.
-- **AI Role:** LLMs are used solely as explanatory synthesis assistants to translate structured graph evidence into human-readable narratives.
-- **Local Fallback:** A deterministic template synthesizer serves as a zero-latency, 100% offline fallback when local LLM models (e.g. Ollama/Qwen) are unavailable.
-
-### Consequences
-- **Positive:** Zero API billing, sub-millisecond execution, complete reproducibility, and zero hallucination risk in balance calculation.
-- **Tradeoff:** Explanations without an active local LLM follow structured deterministic sentence templates.
+</div>
 
 ---
 
-## ADR-002: Embedded DuckDB Columnar Storage vs. Client-Server RDBMS
+## 📑 Summary of Architectural Decisions
 
-### Context
-The application requires local-first execution, fast analytical querying over millions of financial rows, and instant zero-configuration deployment without managing external Docker/Postgres services.
-
-### Decision
-Adopt embedded **DuckDB (v1.4.5)** with an in-memory/file-backed hybrid architecture. Wrap all database operations in a Python `threading.RLock` and utilize isolated cursor handles per query.
-
-### Consequences
-- **Positive:** Extreme analytical throughput (vectorized C++ engine), zero infrastructure dependencies, single-binary distribution.
-- **Negative:** Write concurrency requires in-process mutex synchronization. Solved via thread-safe `DatabaseManager` wrapper.
-
----
-
-## ADR-003: Strict 4-Level Event Taxonomy & Hardened Safety Invariants
-
-### Context
-Legacy systems treat all exceptions identically. In reality, a missing ₹2 gateway fee is structurally different from an unrecorded ₹50 driver cash tip. Blindly auto-resolving off-ledger discrepancies introduces severe fraud and audit liability.
-
-### Decision
-Implement a formal 4-level event taxonomy:
-1. `Level 1 (OBSERVED)`: Direct records from source logs.
-2. `Level 2 (DERIVED)`: Mathematically implied from observations (e.g., fee schedule).
-3. `Level 3 (INFERRED_LATENT)`: Supported by linked non-monetary or split evidence.
-4. `Level 4 (UNOBSERVED_DEVIATION)`: Off-ledger economic gaps with missing counterparty legs.
-
-**Hard Invariant:** `UNOBSERVED_DEVIATION` events are **strictly prohibited from `AUTO_RESOLVE`**. They must escalate to `HUMAN_REVIEW` or remain `UNRESOLVED`.
-
-### Consequences
-- **Positive:** 100% safety guarantee against unauthorized automated ledger adjustments.
-- **Tradeoff:** Operations teams must review off-ledger cash deviations, supported by pre-built evidence graphs.
-
----
-
-## ADR-004: Dual-Ledger Separation (Official Ledger vs. Candidate Shadow Ledger)
-
-### Context
-Financial accounting standards (GAAP/IFRS) forbid speculative alterations to source bank or POS records.
-
-### Decision
-Maintain strict physical and conceptual separation between:
-- **Official Ledger (`observations` table):** Immutable raw source records ingested from external providers.
-- **Shadow Ledger (`cases`, `hypotheses`, `audit_events`):** Proposed economic reconstructions, inferred latent nodes, and candidate resolutions.
-
-### Consequences
-- **Positive:** Full audit compliance. Source records remain untainted. Operators can accept, reject, or override shadow hypotheses at any time.
-
----
-
-## ADR-005: 2-Stage Pipeline (Stage 1 Deterministic Baseline + Stage 2 Graph Inference)
-
-### Context
-In real-world retail batches, $80\%+$ of records are clean 1-to-1 or standard fee-balanced matches. Running full graph construction and latent hypothesis evaluation on 100,000 clean records wastes computation.
-
-### Decision
-- **Stage 1 (Deterministic Reconciler):** Rapidly clears clean matches, known MDR fee pairs, and multi-source dual capture legs at $>300,000\text{ records/sec}$.
-- **Stage 2 (Value-Flow Engine):** Passes only unmatched exception records ($<20\%$ of batch) to the graph builder, hypothesis generator, and evidence scorer.
-
-### Consequences
-- **Positive:** Reduces processing time for 10,000 records to $<150\text{ms}$.
+<table>
+  <thead>
+    <tr style="background-color: #1e1b4b; color: #ffffff;">
+      <th>ADR ID</th>
+      <th>Decision Title</th>
+      <th>Status</th>
+      <th>Core Technical Rationale</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><b>ADR-001</b></td>
+      <td><b>Zero-Paid-API & Deterministic Rule Authority</b></td>
+      <td><span style="color:#10B981">● ACCEPTED</span></td>
+      <td>Prevents LLM non-determinism in financial balances; guarantees zero cloud cost.</td>
+    </tr>
+    <tr>
+      <td><b>ADR-002</b></td>
+      <td><b>Embedded DuckDB over Client-Server RDBMS</b></td>
+      <td><span style="color:#10B981">● ACCEPTED</span></td>
+      <td>Sub-millisecond columnar analytical queries with zero infrastructure dependencies.</td>
+    </tr>
+    <tr>
+      <td><b>ADR-003</b></td>
+      <td><b>4-Level Event Taxonomy & Hardened Safety</b></td>
+      <td><span style="color:#10B981">● ACCEPTED</span></td>
+      <td>Strictly forbids off-ledger unrecorded payments from automated ledger closure.</td>
+    </tr>
+    <tr>
+      <td><b>ADR-004</b></td>
+      <td><b>Dual-Ledger Separation (Official vs. Shadow)</b></td>
+      <td><span style="color:#10B981">● ACCEPTED</span></td>
+      <td>Preserves immutable source facts while allowing candidate graph reconstructions.</td>
+    </tr>
+    <tr>
+      <td><b>ADR-005</b></td>
+      <td><b>2-Stage High-Throughput Pipeline</b></td>
+      <td><span style="color:#10B981">● ACCEPTED</span></td>
+      <td>Filters clean transactions at 300k+ rec/s before invoking graph inference.</td>
+    </tr>
+    <tr>
+      <td><b>ADR-006</b></td>
+      <td><b>7D Mathematical Evidence Scoring</b></td>
+      <td><span style="color:#10B981">● ACCEPTED</span></td>
+      <td>Replaces black-box arbitrary heuristics with verifiable mathematical invariants.</td>
+    </tr>
+    <tr>
+      <td><b>ADR-007</b></td>
+      <td><b>Fleet-Wide Signature Clustering Engine</b></td>
+      <td><span style="color:#10B981">● ACCEPTED</span></td>
+      <td>Collapses thousands of recurring micro-deviations into single systemic causes.</td>
+    </tr>
+  </tbody>
+</table>
 
 ---
 
-## ADR-006: 7-Dimensional Mathematical Evidence Scoring
+## 📝 Detailed Architecture Decision Records
 
-### Context
-Confidence scoring in legacy AI systems often relies on heuristic arbitrary weights (e.g. 0.8 for match, 0.5 for name similarity).
+### ADR-001: Zero-Paid-API Architecture & Deterministic Fallback Authority
 
-### Decision
-Score candidate hypotheses across 7 independent, mathematically verifiable dimensions:
-1. *Conservation of Value* (Weight: 0.25)
-2. *Temporal Plausibility* (Weight: 0.15)
-3. *Entity Linkage* (Weight: 0.20)
-4. *Observation Coverage* (Weight: 0.15)
-5. *Domain Rule Fit* (Weight: 0.10)
-6. *Parsimony Penalty* (Weight: 0.15)
-7. *Contradiction Penalty* (Weight: -0.50 disqualifier)
+```mermaid
+graph LR
+    subgraph INPUT ["Transaction Streams"]
+        A[POS / Bank / Gateway Logs]
+    end
+    subgraph ENGINE ["Deterministic Authority"]
+        B[Value Conservation Invariants]
+        C[7D Mathematical Scorer]
+        D[Hardened Decision Gate]
+    end
+    subgraph EXPLAINER ["Explanatory Layer Only"]
+        E[Local LLM / Offline Fallback]
+    end
 
-### Consequences
-- **Positive:** Deterministic, explainable confidence scores that correlate with ground truth across diverse commercial scenarios.
+    A --> B
+    B --> C
+    C --> D
+    D --> E
+
+    classDef inStyle fill:#1e1b4b,stroke:#818cf8,stroke-width:2px,color:#fff;
+    classDef authStyle fill:#064e3b,stroke:#34d399,stroke-width:2px,color:#fff;
+    classDef expStyle fill:#4c1d95,stroke:#a78bfa,stroke-width:2px,color:#fff;
+
+    class A inStyle;
+    class B,C,D authStyle;
+    class E expStyle;
+```
+
+> **Context:** Financial balance calculations require strict numerical determinism and zero floating-point error. Cloud LLMs (GPT-4 / Claude) introduce token latencies, billing costs, and hallucination risks.  
+> **Decision:** Mathematical reconciliation, value conservation, hypothesis ranking, and decision gates are executed strictly by deterministic Python algorithms. Local LLMs (Ollama) act solely as narrative explainers with deterministic fallback.  
+> **Consequences:** $100\%$ reproducible balance computations, zero external API costs, and sub-millisecond execution.
 
 ---
 
-## ADR-007: Fleet Cross-Case Signature Clustering for Root-Cause Discovery
+### ADR-002: Embedded DuckDB Columnar Storage vs. Client-Server RDBMS
 
-### Context
-Operations teams face alert fatigue when investigating hundreds of similar micro-discrepancies independently.
+> **Context:** The system requires local-first execution, fast analytical querying over millions of financial rows, and instant zero-configuration deployment without managing external Docker/Postgres services.  
+> **Decision:** Adopt embedded **DuckDB (v1.4.5)** with an in-memory/file-backed hybrid architecture. Wrap all database operations in a Python `threading.RLock` and utilize isolated cursor handles per query.  
+> **Consequences:** Extreme analytical throughput (vectorized C++ engine), zero infrastructure dependencies, single-binary distribution.
 
-### Decision
-Implement the **Pattern Engine** to cluster exceptions across the entire batch using signature hashes, value variances, and entity frequencies.
+---
 
-### Consequences
-- **Positive:** Enables financial controllers to identify systemic root causes (e.g., a misconfigured 2.0% gateway MDR rule) and resolve thousands of cases with a single operational change.
+### ADR-003: Strict 4-Level Event Taxonomy & Hardened Safety Invariants
+
+```mermaid
+stateDiagram-v2
+    Level1_OBSERVED --> Level2_DERIVED: Rule Implication
+    Level2_DERIVED --> Level3_INFERRED_LATENT: Linked Graph Evidence
+    Level3_INFERRED_LATENT --> Level4_UNOBSERVED_DEVIATION: Off-Ledger Gap
+
+    state Level1_OBSERVED {
+        Direct: Source Facts (POS/Bank)
+    }
+    state Level2_DERIVED {
+        MDR_Fees: 2.0% Known Fee Netting
+    }
+    state Level3_INFERRED_LATENT {
+        Candy_Change: Inventory Substitution
+    }
+    state Level4_UNOBSERVED_DEVIATION {
+        Cash_Gap: Off-Ledger Cash / Direct QR
+        Invariant: NEVER AUTO_RESOLVE
+    }
+```
+
+> **Context:** Legacy systems treat all exceptions identically. In reality, a missing ₹2 gateway fee is structurally different from an unrecorded ₹50 driver cash tip. Blindly auto-resolving off-ledger discrepancies introduces severe fraud and audit liability.  
+> **Decision:** Level 4 `UNOBSERVED_DEVIATION` events are **strictly prohibited from `AUTO_RESOLVE`**. They must escalate to `HUMAN_REVIEW` or remain `UNRESOLVED`.  
+> **Consequences:** 100% safety guarantee against unauthorized automated ledger adjustments.
+
+---
+
+### ADR-004: Dual-Ledger Separation (Official Ledger vs. Candidate Shadow Ledger)
+
+> **Context:** Financial accounting standards (GAAP/IFRS) forbid speculative alterations to source bank or POS records.  
+> **Decision:** Maintain strict physical and conceptual separation between the immutable **Official Ledger** (`observations` table) and the candidate **Shadow Ledger** (`cases`, `hypotheses`, `audit_events`).  
+> **Consequences:** Complete audit compliance; source records remain untainted.
+
+---
+
+### ADR-005: 2-Stage High-Throughput Reconciliation Pipeline
+
+> **Context:** In real-world commercial batches, $80\%+$ of records are clean 1-to-1 or standard fee-balanced matches. Running full graph construction and latent hypothesis evaluation on 100,000 clean records wastes computation.  
+> **Decision:** Stage 1 deterministic reconciler clears clean matches at $>300,000\text{ records/sec}$. Unmatched exceptions ($<20\%$) enter Stage 2 value-flow graph inference.  
+> **Consequences:** 10,000 records processed in $<150\text{ms}$.
+
+---
+
+### ADR-006: 7-Dimensional Mathematical Evidence Scoring
+
+> **Context:** Confidence scoring in legacy AI systems often relies on heuristic arbitrary weights.  
+> **Decision:** Score candidate hypotheses across 7 independent mathematical dimensions: Conservation (0.25), Temporal Plausibility (0.15), Entity Linkage (0.20), Observation Coverage (0.15), Domain Rule Fit (0.10), Parsimony (0.15), and Contradiction Penalty (-0.50).  
+> **Consequences:** Calibrated, explainable confidence scores that correlate with ground truth.
+
+---
+
+### ADR-007: Fleet-Wide Signature Clustering for Root-Cause Discovery
+
+> **Context:** Operations teams face alert fatigue when investigating hundreds of similar micro-discrepancies independently.  
+> **Decision:** Implement the **Pattern Engine** to cluster exceptions across the entire batch using signature hashes, value variances, and entity frequencies.  
+> **Consequences:** Enables financial controllers to identify systemic root causes (e.g. misconfigured 2.0% MDR rule) and resolve thousands of cases with a single operational change.
