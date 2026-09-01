@@ -53,6 +53,7 @@ class ShadowReconciliationResult:
     shadow_events: list[Event] = field(default_factory=list)
     pattern_clusters: list[PatternCluster] = field(default_factory=list)
     baseline_match_groups: list[MatchGroup] = field(default_factory=list)
+    observations: list[Observation] = field(default_factory=list)
 
 
 class ValueFlowReconstructionEngine:
@@ -249,4 +250,5 @@ class ValueFlowReconstructionEngine:
             shadow_events=all_shadow_events,
             pattern_clusters=pattern_clusters,
             baseline_match_groups=baseline_matches,
+            observations=observations,
         )

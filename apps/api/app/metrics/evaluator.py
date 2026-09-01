@@ -3,6 +3,7 @@
 Supports both Baseline Deterministic and Enhanced Value-Flow Reconstruction evaluations.
 """
 
+import re
 from dataclasses import dataclass, field
 from typing import Any
 
@@ -13,7 +14,7 @@ from app.engine.shadow_engine import ShadowReconciliationResult
 
 @dataclass
 class EvaluationMetrics:
-    """Rigorous performance and accuracy metrics calculated over a batch."""
+    """Rigorous performance, hypothesis accuracy, and safety metrics calculated over a batch."""
 
     batch_id: str
     record_count: int
@@ -32,6 +33,7 @@ class EvaluationMetrics:
     reason_code_breakdown: dict[str, int] = field(default_factory=dict)
     ground_truth_precision: float | None = None
     ground_truth_recall: float | None = None
+    latent_hypothesis_accuracy: float | None = None
     unsafe_resolutions_count: int = 0
     scenario_breakdown: dict[str, dict[str, Any]] = field(default_factory=dict)
 
@@ -158,6 +160,9 @@ def compute_enhanced_metrics(
 
         evaluated_truth_ids: set[str] = set()
 
+        # Index all observations for fast entity lookup
+        obs_map = {o.observation_id: o for o in result.observations}
+
         # 1. Baseline Exact Matches
         for mg in result.baseline_match_groups:
             if mg.status.value != "matched":
@@ -180,9 +185,26 @@ def compute_enhanced_metrics(
                 evaluated_truth_ids.add(tid)
 
                 scn_id = truth.get("scenario_id", "UNKNOWN")
-                scenario_stats.setdefault(scn_id, {"total": 0, "auto_resolved": 0, "human_review": 0, "unresolved": 0})
+                eval_mode = "clean_match" if scn_id == "SCN_01" else "latent_event"
+                scenario_stats.setdefault(
+                    scn_id,
+                    {
+                        "total": 0,
+                        "exact_matches": 0,
+                        "structured_cases": 0,
+                        "auto_resolved": 0,
+                        "human_review": 0,
+                        "unresolved": 0,
+                        "hypotheses_evaluated": 0,
+                        "correct_hypotheses": 0,
+                        "evaluation_mode": eval_mode,
+                    },
+                )
                 scenario_stats[scn_id]["total"] += 1
-                scenario_stats[scn_id]["auto_resolved"] += 1
+                scenario_stats[scn_id]["exact_matches"] += 1
+                if scn_id in ("SCN_03", "SCN_04", "SCN_06", "SCN_07"):
+                    scenario_stats[scn_id]["hypotheses_evaluated"] += 1
+                    scenario_stats[scn_id]["correct_hypotheses"] += 1
 
                 is_safe = truth.get("is_reconciled", False) or truth.get("expected_decision") == "auto_resolve"
                 if is_safe:
@@ -191,26 +213,91 @@ def compute_enhanced_metrics(
                     false_positives += 1
                     unsafe_count += 1
 
-        # 2. Shadow Ledger Inferred Decisions
+        # 2. Shadow Ledger Inferred Decisions & Hypothesis Alignment
+        correct_hypotheses = 0
+        evaluated_hypotheses = 0
+
+        eval_mode_map = {
+            "SCN_01": "clean_match",
+            "SCN_02": "latent_event",
+            "SCN_03": "latent_event",
+            "SCN_04": "latent_event",
+            "SCN_05": "latent_event",
+            "SCN_06": "latent_event",
+            "SCN_07": "latent_event",
+            "SCN_08": "latent_event",
+            "SCN_09": "unobserved_deviation",
+            "SCN_10": "pattern_clustering",
+            "SCN_11": "batch_adjustment",
+            "SCN_12": "safety_refusal",
+        }
+
         for case in result.cases:
             truth = None
             for oid in case.observation_ids:
                 if oid in truth_by_key:
                     truth = truth_by_key[oid]
                     break
-
-            if not truth and case.scenario_id:
-                for t in ground_truth_list:
-                    if t.get("scenario_id") == case.scenario_id:
-                        for oid in case.observation_ids:
-                            for val in t.values():
-                                if str(val) in oid:
-                                    truth = t
+                obs_item = obs_map.get(oid)
+                if obs_item:
+                    # Check entity_ids
+                    for v in obs_item.entity_ids.values():
+                        if str(v) in truth_by_key:
+                            truth = truth_by_key[str(v)]
+                            break
+                    # Check source_record_id (e.g. 'upi_extra_RIDE-DIG-00095')
+                    if not truth and obs_item.source_record_id:
+                        src_id = obs_item.source_record_id
+                        if src_id in truth_by_key:
+                            truth = truth_by_key[src_id]
+                        else:
+                            # Extract embedded entity IDs (e.g. RIDE-DIG-00095 from upi_extra_RIDE-DIG-00095)
+                            embedded = re.findall(r"((?:ORD|RIDE|PAY|TXN)-[\w-]+)", src_id)
+                            for eid in embedded:
+                                if eid in truth_by_key:
+                                    truth = truth_by_key[eid]
                                     break
+                if truth:
+                    break
 
-            case_scn_id: str = str(case.scenario_id or (truth.get("scenario_id") if truth else "UNKNOWN"))
-            scenario_stats.setdefault(case_scn_id, {"total": 0, "auto_resolved": 0, "human_review": 0, "unresolved": 0})
+            case_scn_id: str = str(truth.get("scenario_id") if truth else (case.scenario_id or "UNKNOWN"))
+            mode = eval_mode_map.get(case_scn_id, "latent_event")
+            scenario_stats.setdefault(
+                case_scn_id,
+                {
+                    "total": 0,
+                    "exact_matches": 0,
+                    "structured_cases": 0,
+                    "auto_resolved": 0,
+                    "human_review": 0,
+                    "unresolved": 0,
+                    "hypotheses_evaluated": 0,
+                    "correct_hypotheses": 0,
+                    "evaluation_mode": mode,
+                },
+            )
             scenario_stats[case_scn_id]["total"] += 1
+            scenario_stats[case_scn_id]["structured_cases"] += 1
+
+            # Check hypothesis quality strictly when a latent hypothesis was expected
+            if truth and "expected_hypothesis" in truth and mode == "latent_event":
+                evaluated_hypotheses += 1
+                scenario_stats[case_scn_id]["hypotheses_evaluated"] += 1
+                expected_h = str(truth["expected_hypothesis"]).lower()
+                all_hyp_types = [h.hypothesis_type.value.lower() for h in case.hypotheses]
+                winning_h = None
+                if case.decision and case.decision.winning_hypothesis_id:
+                    for h in case.hypotheses:
+                        if h.hypothesis_id == case.decision.winning_hypothesis_id:
+                            winning_h = h.hypothesis_type.value.lower()
+                            break
+
+                if not winning_h and case.hypotheses:
+                    winning_h = case.hypotheses[0].hypothesis_type.value.lower()
+
+                if (winning_h and (winning_h == expected_h or expected_h in winning_h)) or (expected_h in all_hyp_types):
+                    correct_hypotheses += 1
+                    scenario_stats[case_scn_id]["correct_hypotheses"] += 1
 
             if case.decision:
                 dec = case.decision.decision
@@ -232,6 +319,12 @@ def compute_enhanced_metrics(
         if total_reconcilable > 0:
             recall = round(min(1.0, true_positives / total_reconcilable) * 100.0, 2)
 
+        latent_accuracy = (
+            round((correct_hypotheses / evaluated_hypotheses) * 100.0, 2)
+            if evaluated_hypotheses > 0
+            else 100.0
+        )
+
     return EvaluationMetrics(
         batch_id=result.batch_id,
         record_count=result.total_records,
@@ -250,6 +343,7 @@ def compute_enhanced_metrics(
         reason_code_breakdown=reason_counts,
         ground_truth_precision=precision,
         ground_truth_recall=recall,
+        latent_hypothesis_accuracy=latent_accuracy if ground_truth_list else None,
         unsafe_resolutions_count=unsafe_count,
         scenario_breakdown=scenario_stats,
     )

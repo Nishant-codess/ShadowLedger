@@ -12,6 +12,8 @@ Strict Invariants:
 
 import json
 import logging
+import os
+import re
 import urllib.error
 import urllib.request
 from decimal import Decimal
@@ -23,17 +25,29 @@ from app.domain.models import Case, Decision, Hypothesis, Observation
 logger = logging.getLogger(__name__)
 
 
+def sanitize_text(text: str, max_length: int = 250) -> str:
+    """Sanitize user/transaction descriptions against prompt injection attempts."""
+    if not text:
+        return ""
+    # Strip potential instruction injection strings
+    cleaned = re.sub(r"(?i)(system\s*:|ignore\s+previous|you\s+are\s+now|override|developer\s+mode)", "[filtered]", text)
+    # Strip non-printable characters and truncate
+    cleaned = "".join(ch for ch in cleaned if ch.isprintable())
+    return cleaned[:max_length].strip()
+
+
 class LocalAIExplainer:
     """Generates evidence-grounded audit narratives using local LLMs with deterministic fallback."""
 
     def __init__(
         self,
-        ollama_base_url: str = "http://localhost:11434",
-        model_name: str = "llama3.2:latest",
+        ollama_base_url: str | None = None,
+        model_name: str | None = None,
         timeout_seconds: float = 2.0,
     ) -> None:
-        self.ollama_base_url = ollama_base_url
-        self.model_name = model_name
+        self.ollama_base_url = ollama_base_url or os.environ.get("OLLAMA_BASE_URL", "http://localhost:11434")
+        self.model_name = model_name or os.environ.get("LLM_MODEL", os.environ.get("OLLAMA_MODEL", "llama3.2:latest"))
+        self.provider = os.environ.get("LLM_PROVIDER", "ollama")
         self.timeout_seconds = timeout_seconds
 
     def generate_case_explanation(

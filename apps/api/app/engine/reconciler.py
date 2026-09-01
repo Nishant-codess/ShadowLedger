@@ -185,7 +185,22 @@ class DeterministicReconciler:
             fees = [o for o in group_obs if o.event_type == EventType.FEE]
             refunds = [o for o in group_obs if o.event_type == EventType.REFUND]
 
-            pos_or_gateway_total = sum((p.amount for p in payments), Decimal("0.00"))
+            # In multi-source financial logs (e.g. POS + Gateway + Bank):
+            # When POS and Gateway both record the identical payment amount for the same order/entity,
+            # they represent dual-recorded legs of the single economic payment, not two additive charges.
+            pos_payments = [p for p in payments if p.source_system == "pos"]
+            gtw_payments = [p for p in payments if p.source_system == "gateway"]
+            if (
+                pos_payments
+                and gtw_payments
+                and len(pos_payments) == 1
+                and len(gtw_payments) == 1
+                and pos_payments[0].amount == gtw_payments[0].amount
+            ):
+                pos_or_gateway_total = pos_payments[0].amount
+            else:
+                pos_or_gateway_total = sum((p.amount for p in payments), Decimal("0.00"))
+
             bank_settlement_total = sum((s.amount for s in settlements), Decimal("0.00"))
             fee_total = sum((f.amount for f in fees), Decimal("0.00"))
 

@@ -127,7 +127,7 @@ def get_hero_b_mobility() -> tuple[str, list[dict[str, Any]], dict[str, Any]]:
             "source_system": "ride_platform",
             "source_record_id": "ride_plat_002",
             "event_type": "payment",
-            "amount": 220.0,
+            "amount": 150.0,
             "currency": "INR",
             "timestamp": (t0 + timedelta(minutes=30)).isoformat(),
             "description": "Cab Ride Indiranagar to Whitefield (Trip ID: RIDE-HERO-02)",
@@ -138,6 +138,7 @@ def get_hero_b_mobility() -> tuple[str, list[dict[str, Any]], dict[str, Any]]:
             },
             "raw_payload": {
                 "scenario_id": "SCN_09",
+                "cash_deviation": 50.0,
             },
         },
     ]
@@ -164,7 +165,7 @@ def get_hero_c_patterns() -> tuple[str, list[dict[str, Any]], dict[str, Any]]:
     t0 = datetime(2026, 9, 1, 9, 0, 0, tzinfo=UTC)
     records: list[dict[str, Any]] = []
 
-    # Cluster 1: 10 Kirana Inventory Change Cases
+    # Cluster 1: 10 Kirana Inventory Change Cases (SCN_04)
     for i in range(1, 11):
         order_id = f"ORD-KIR-FLEET-{i:03d}"
         merch_id = f"MERCH-KIR-{i:02d}"
@@ -180,13 +181,14 @@ def get_hero_c_patterns() -> tuple[str, list[dict[str, Any]], dict[str, Any]]:
                 "timestamp": rec_time.isoformat(),
                 "description": f"POS Sale {order_id}",
                 "entity_ids": {"order_id": order_id, "merchant_id": merch_id},
-                "raw_payload": {
-                    "scenario_id": "SCN_04",
-                    "item_description": "Chocolate Bar Change",
-                    "inventory_change_qty": -1,
-                    "inventory_retail_value": 2.0,
+                "inventory_move": {
+                    "item_description": "Dairy Milk Chocolate Change",
+                    "quantity": 1,
+                    "retail_value": 2.0,
                     "valuation_basis": "retail",
+                    "linked_order_id": order_id,
                 },
+                "raw_payload": {"scenario_id": "SCN_04"},
             },
             {
                 "batch_id": batch_id,
@@ -202,7 +204,7 @@ def get_hero_c_patterns() -> tuple[str, list[dict[str, Any]], dict[str, Any]]:
             },
         ])
 
-    # Cluster 2: 10 Mobility Deviation Cases
+    # Cluster 2: 10 Mobility Deviation Cases (SCN_10)
     for i in range(1, 11):
         ride_id = f"RIDE-CAB-FLEET-{i:03d}"
         driver_id = f"DRV-FLEET-{i:02d}"
@@ -213,7 +215,7 @@ def get_hero_c_patterns() -> tuple[str, list[dict[str, Any]], dict[str, Any]]:
                 "source_system": "ride_platform",
                 "source_record_id": f"ride_mob_f_{i}",
                 "event_type": "payment",
-                "amount": 150.0 + (i * 15),
+                "amount": 150.0,
                 "currency": "INR",
                 "timestamp": rec_time.isoformat(),
                 "description": f"Platform Ride {ride_id}",
@@ -228,13 +230,13 @@ def get_hero_c_patterns() -> tuple[str, list[dict[str, Any]], dict[str, Any]]:
                 "amount": 50.0,
                 "currency": "INR",
                 "timestamp": (rec_time + timedelta(minutes=2)).isoformat(),
-                "description": "Driver UPI QR Direct Fare Addition",
-                "entity_ids": {"driver_id": driver_id},
+                "description": f"Driver UPI QR Direct Fare Addition Ref: {ride_id}",
+                "entity_ids": {"ride_id": ride_id, "driver_id": driver_id},
                 "raw_payload": {"scenario_id": "SCN_10", "source_type": "external_driver_qr"},
             },
         ])
 
-    # Cluster 3: 10 Gateway MDR Fee Adjustments (2.0%)
+    # Cluster 3: 10 Gateway MDR Fee Adjustments (2.0%) (SCN_03)
     for i in range(1, 11):
         order_id = f"ORD-ECOM-FLEET-{i:03d}"
         rec_time = t0 + timedelta(minutes=120 + i * 5)

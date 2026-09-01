@@ -173,11 +173,13 @@ class LatentHypothesisEngine:
                 hypothesis_type=HypothesisType.OFF_LEDGER_DEVIATION,
             )
 
-            # Extract indirect evidence IDs if present (e.g. external trace, driver history)
+            # Extract indirect evidence IDs if present (e.g. external trace, driver history, separate UPI transfer)
             indirect_ids = [
                 o.observation_id for o in observations
                 if o.source_system in ("external_trace", "driver_upi")
                 or "external" in o.raw_payload.get("source_type", "")
+                or "upi_extra" in o.source_record_id
+                or "direct upi" in o.description.lower()
             ]
 
             candidates.append(

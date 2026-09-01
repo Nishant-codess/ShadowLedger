@@ -37,7 +37,7 @@ class ObservationRepository:
             for obs in observations
         ]
 
-        self.db.conn.executemany(
+        self.db.executemany(
             """
             INSERT OR REPLACE INTO observations VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """,
@@ -65,7 +65,7 @@ class ObservationRepository:
             for m in moves
         ]
 
-        self.db.conn.executemany(
+        self.db.executemany(
             """
             INSERT OR REPLACE INTO inventory_moves VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """,
@@ -74,7 +74,7 @@ class ObservationRepository:
 
     def get_by_batch(self, batch_id: str) -> list[Observation]:
         """Fetch all observations for a given batch ID."""
-        rows = self.db.conn.execute(
+        rows = self.db.query_all(
             """
             SELECT observation_id, source_system, source_record_id, raw_payload,
                    event_type, amount, currency, timestamp, entity_ids,
@@ -83,7 +83,7 @@ class ObservationRepository:
             ORDER BY timestamp ASC
             """,
             [batch_id],
-        ).fetchall()
+        )
 
         results: list[Observation] = []
         for r in rows:
@@ -107,7 +107,7 @@ class ObservationRepository:
 
     def get_inventory_by_batch(self, batch_id: str) -> list[InventoryMove]:
         """Fetch all inventory moves connected to observations in a batch."""
-        rows = self.db.conn.execute(
+        rows = self.db.query_all(
             """
             SELECT m.move_id, m.observation_id, m.sku, m.item_description,
                    m.quantity, m.unit_cost, m.retail_value, m.valuation_basis,
@@ -117,7 +117,7 @@ class ObservationRepository:
             WHERE o.batch_id = ?
             """,
             [batch_id],
-        ).fetchall()
+        )
 
         results: list[InventoryMove] = []
         for r in rows:

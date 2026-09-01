@@ -49,8 +49,8 @@ jobs:
           python-version: '3.12'
       - name: Install dependencies
         run: pip install -e "./apps/api[dev]"
-      - name: Generate synthetic test dataset
-        run: python scripts/generate_dataset.py --rows 100 --seed 42
+      - name: Run benchmark harness check
+        run: python scripts/run_benchmark.py --rows 100 --seed 42
       - name: Run end-to-end pipeline smoke test
         run: |
           timeout 60 python -c "
@@ -80,10 +80,20 @@ jobs:
           cases = json.loads(r.read())
           assert len(cases) > 0, 'No cases generated'
 
-          # 5. Verify metrics endpoint
+          # 5. Verify metrics & benchmark endpoints
           r = urllib.request.urlopen('http://localhost:8000/api/metrics')
           metrics = json.loads(r.read())
           assert 'match_rate' in metrics, 'Metrics missing match_rate'
 
-          print(f'CI Smoke Test Passed: {len(cases)} cases created, match_rate={metrics[\"match_rate\"]}%, throughput={metrics[\"throughput_records_per_sec\"]} r/s')
+          r_bm = urllib.request.urlopen('http://localhost:8000/api/metrics/benchmark?rows=100&seed=42')
+          bm = json.loads(r_bm.read())
+          assert 'baseline' in bm and 'enhanced' in bm, 'Benchmark endpoint failed'
+
+          # 6. Verify Hero Demo endpoints
+          for hero_id in ('hero_a', 'hero_b', 'hero_c'):
+              req_hero = urllib.request.Request(f'http://localhost:8000/api/demo/hero/{hero_id}', method='POST')
+              r_hero = urllib.request.urlopen(req_hero)
+              assert r_hero.status == 200, f'Hero {hero_id} failed'
+
+          print(f'CI Smoke Test Passed: {len(cases)} cases, match_rate={metrics[\"match_rate\"]}%, benchmark verified!')
           "

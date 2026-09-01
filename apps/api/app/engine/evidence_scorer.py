@@ -236,6 +236,8 @@ class EvidenceScorer:
             return 0.75
 
         elif htype == HypothesisType.REFUND:
+            if any(o.source_system in ("ride_platform", "external_trace", "driver_upi", "ola", "uber") or "ride_id" in o.entity_ids for o in observations):
+                return 0.40  # Incongruent: Retail product return rule applied to mobility ride platform
             return 0.90
 
         elif htype == HypothesisType.OFF_LEDGER_DEVIATION:

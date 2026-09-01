@@ -478,14 +478,15 @@ def gen_scn_08_ride_digital_trace(
             "entity_ids": {"ride_id": ride_id, "driver_id": driver_id, "passenger_id": passenger_id},
         },
         {
-            "source_system": "bank",
+            "source_system": "external_trace",
             "source_record_id": f"upi_extra_{ride_id}",
             "event_type": "payment",
             "amount": float(extra_payment),
             "currency": "INR",
             "timestamp": _iso(t_end + timedelta(minutes=1)),
             "description": f"Direct UPI transfer to driver {driver_id}",
-            "entity_ids": {"driver_id": driver_id, "passenger_id": passenger_id},
+            "entity_ids": {"ride_id": ride_id, "driver_id": driver_id, "passenger_id": passenger_id},
+            "raw_payload": {"scenario_id": "SCN_08", "source_type": "external_driver_qr"},
         },
     ]
 
@@ -773,9 +774,9 @@ SCENARIOS: dict[str, ScenarioDefinition] = {
     ),
     "SCN_10": ScenarioDefinition(
         scenario_id="SCN_10",
-        name="Recurring Micro-Deviation Pattern",
+        name="Homogeneous Recurring Micro-Deviation Pattern (Single Entity)",
         category="hero_c",
-        description="Systematic recurring micro-leakages across a merchant or driver cohort.",
+        description="Systematic recurring micro-leakages by a single driver/merchant entity. Unlike Hero C cross-domain demo, this tests homogeneous pattern detection.",
         expected_decision="human_review",
         allowed_hypotheses=["off_ledger_deviation"],
         generator=gen_scn_10_recurring_micro_pattern,

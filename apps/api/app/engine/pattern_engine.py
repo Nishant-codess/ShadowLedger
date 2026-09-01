@@ -88,13 +88,13 @@ class CrossCasePatternEngine:
         """Formulate cautious, defensible descriptions for recurring pattern clusters."""
         if "INVENTORY_SETTLEMENT" in signature or "SCN_04" in signature:
             return (
-                f"Recurring Kirana non-cash inventory change settlement across {count} transactions "
-                f"(Total retail value: ₹{float(total_val):.2f}). Consistent physical change substitution pattern."
+                f"Recurring non-cash inventory settlement pattern across {count} transactions "
+                f"(Total retail value: ₹{float(total_val):.2f}). Possible physical change substitution pattern."
             )
         elif "OFF_LEDGER_DEVIATION" in signature or "SCN_08" in signature or "SCN_09" in signature or "SCN_10" in signature:
             return (
                 f"Recurring mobility fare deviation pattern across {count} trips "
-                f"(Total unrecorded cash at risk: ₹{float(total_val):.2f}). Likely off-ledger cash overcharge."
+                f"(Total unrecorded value at risk: ₹{float(total_val):.2f}). Possible off-ledger fare discrepancy."
             )
         elif "FEE_ADJUSTMENT" in signature or "SCN_03" in signature:
             return (

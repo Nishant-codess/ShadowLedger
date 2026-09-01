@@ -55,7 +55,7 @@ class DecisionRiskGate:
 
         # RULE 1: OFF_LEDGER_DEVIATION is strictly PROHIBITED from AUTO_RESOLVE
         if htype == HypothesisType.OFF_LEDGER_DEVIATION:
-            if best_hyp.indirect_evidence_ids or conf >= self.review_threshold:
+            if best_hyp.indirect_evidence_ids and conf >= self.review_threshold:
                 outcome = DecisionType.HUMAN_REVIEW
                 reason_codes.append("OFF_LEDGER_DEVIATION_INDIRECT_TRACE_ESCALATED")
                 reason_codes.append("PROHIBITED_FROM_AUTO_RESOLVE")

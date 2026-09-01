@@ -87,7 +87,7 @@ def test_shadow_engine_end_to_end_batch():
             event_type=EventType.PAYMENT,
             amount=Decimal("50.00"),
             timestamp=t0 + timedelta(minutes=5),
-            entity_ids={"driver_id": "DRV-1"},
+            entity_ids={"ride_id": "RIDE-1", "driver_id": "DRV-1"},
             raw_payload={"source_type": "external_driver_qr"},
         ),
     ]

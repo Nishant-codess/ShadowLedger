@@ -63,4 +63,4 @@ def test_hero_c_patterns_discovers_three_distinct_clusters():
     result = engine.process_batch(batch_id, obs, inv)
 
     assert result.total_records == 60
-    assert len(result.pattern_clusters) >= 2  # Discovered recurring patterns
+    assert len(result.pattern_clusters) == 3  # Discovered exactly 3 structural patterns: Fee, Off-Ledger, Inventory

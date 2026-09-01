@@ -166,7 +166,7 @@ export default function CommandCenterPage() {
             </div>
             <div className="text-xs font-bold text-white">Cross-Case Pattern Collapse</div>
             <p className="text-[11px] text-slate-400 leading-normal">
-              60 multi-party discrepancy records collapse into 3 systemic recurring operational root causes.
+              60 multi-party discrepancy records collapse into 3 systemic recurring structural patterns.
             </p>
             <div className="pt-1 flex items-center text-[10px] font-bold text-purple-400">
               {loading && activeHero === "hero_c" ? "Discovering..." : "Launch Pattern Demo &rarr;"}

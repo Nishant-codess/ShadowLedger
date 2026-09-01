@@ -35,7 +35,7 @@ class CaseRepository:
             for c in cases
         ]
 
-        self.db.conn.executemany(
+        self.db.executemany(
             """
             INSERT OR REPLACE INTO cases VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """,
@@ -63,7 +63,7 @@ class CaseRepository:
                 )
                 for d in decisions_to_save
             ]
-            self.db.conn.executemany(
+            self.db.executemany(
                 """
                 INSERT OR REPLACE INTO decisions VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """,
@@ -79,7 +79,7 @@ class CaseRepository:
 
     def get_cases_by_batch(self, batch_id: str) -> list[Case]:
         """Fetch all cases for a batch with their decisions attached."""
-        rows = self.db.conn.execute(
+        rows = self.db.query_all(
             """
             SELECT c.case_id, c.batch_id, c.observation_ids, c.residual_amount,
                    c.financial_impact, c.pattern_cluster_id, c.scenario_id,
@@ -94,7 +94,7 @@ class CaseRepository:
             ORDER BY c.financial_impact DESC
             """,
             [batch_id],
-        ).fetchall()
+        )
 
         cases: list[Case] = []
         for r in rows:
@@ -135,7 +135,7 @@ class CaseRepository:
 
     def get_case_by_id(self, case_id: str) -> Case | None:
         """Fetch a single case by ID."""
-        row = self.db.conn.execute(
+        row = self.db.query_one(
             """
             SELECT c.case_id, c.batch_id, c.observation_ids, c.residual_amount,
                    c.financial_impact, c.pattern_cluster_id, c.scenario_id,
@@ -149,7 +149,7 @@ class CaseRepository:
             WHERE c.case_id = ?
             """,
             [case_id],
-        ).fetchone()
+        )
 
         if not row:
             return None
@@ -209,7 +209,7 @@ class CaseRepository:
             for e in events
         ]
 
-        self.db.conn.executemany(
+        self.db.executemany(
             """
             INSERT OR REPLACE INTO events VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """,
@@ -236,7 +236,7 @@ class CaseRepository:
             for c in clusters
         ]
 
-        self.db.conn.executemany(
+        self.db.executemany(
             """
             INSERT OR REPLACE INTO pattern_clusters VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
             """,
@@ -245,7 +245,7 @@ class CaseRepository:
 
     def get_pattern_clusters_by_batch(self, batch_id: str) -> list[PatternCluster]:
         """Fetch all pattern clusters for a batch."""
-        rows = self.db.conn.execute(
+        rows = self.db.query_all(
             """
             SELECT cluster_id, batch_id, case_ids, pattern_signature,
                    exception_count, total_value_at_risk, likely_common_cause,
@@ -255,7 +255,7 @@ class CaseRepository:
             ORDER BY total_value_at_risk DESC
             """,
             [batch_id],
-        ).fetchall()
+        )
 
         return [
             PatternCluster(
@@ -274,7 +274,7 @@ class CaseRepository:
 
     def save_batch_metadata(self, meta: BatchMetadata) -> None:
         """Insert or update batch processing summary."""
-        self.db.conn.execute(
+        self.db.execute(
             """
             INSERT OR REPLACE INTO batches VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """,
@@ -297,7 +297,7 @@ class CaseRepository:
 
     def get_batch_metadata(self, batch_id: str) -> BatchMetadata | None:
         """Retrieve batch summary by ID."""
-        row = self.db.conn.execute(
+        row = self.db.query_one(
             """
             SELECT batch_id, seed, record_count, matched_count, exception_count,
                    resolved_count, review_count, unresolved_count,
@@ -306,7 +306,7 @@ class CaseRepository:
             FROM batches WHERE batch_id = ?
             """,
             [batch_id],
-        ).fetchone()
+        )
 
         if not row:
             return None
@@ -329,7 +329,7 @@ class CaseRepository:
 
     def list_all_batches(self) -> list[BatchMetadata]:
         """List all processed batches ordered by creation time."""
-        rows = self.db.conn.execute(
+        rows = self.db.query_all(
             """
             SELECT batch_id, seed, record_count, matched_count, exception_count,
                    resolved_count, review_count, unresolved_count,
@@ -337,7 +337,7 @@ class CaseRepository:
                    processing_time_ms, created_at
             FROM batches ORDER BY created_at DESC
             """
-        ).fetchall()
+        )
 
         return [
             BatchMetadata(
