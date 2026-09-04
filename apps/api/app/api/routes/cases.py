@@ -94,6 +94,37 @@ def explain_case(
     if not winning_hyp and c.hypotheses:
         winning_hyp = c.hypotheses[0]
 
+    if not winning_hyp and c.shadow_events:
+        se = c.shadow_events[0]
+        from app.domain.models import Hypothesis
+        indirect_ids = [
+            o.observation_id for o in case_obs
+            if o.source_system in ("external_trace", "driver_upi")
+            or "external" in o.raw_payload.get("source_type", "")
+        ]
+        winning_hyp = Hypothesis(
+            hypothesis_id=c.decision.winning_hypothesis_id if c.decision else "hyp_win",
+            hypothesis_type=se.hypothesis_type,
+            case_id=c.case_id,
+            generated_event=se,
+            evidence_ids=[o.observation_id for o in case_obs if o.observation_id not in indirect_ids],
+            indirect_evidence_ids=indirect_ids,
+            financial_impact=se.amount,
+            evidence_confidence=se.confidence,
+        )
+    elif not winning_hyp and c.graph_json and "nodes" in c.graph_json:
+        winner_node = next((n for n in c.graph_json["nodes"] if n.get("is_winner") is True), None)
+        if winner_node and "hypothesis_type" in winner_node:
+            from app.domain.enums import HypothesisType
+            from app.domain.models import Hypothesis
+            winning_hyp = Hypothesis(
+                hypothesis_id=winner_node.get("hypothesis_id", "hyp_win"),
+                hypothesis_type=HypothesisType(winner_node["hypothesis_type"]),
+                case_id=c.case_id,
+                financial_impact=Decimal(str(winner_node.get("amount", c.residual_amount))),
+                evidence_confidence=winner_node.get("confidence", 0.9),
+            )
+
     from app.engine.local_ai import LocalAIExplainer
 
     explainer = LocalAIExplainer()
