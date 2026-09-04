@@ -1,9 +1,29 @@
 import type { Metadata } from "next";
-import Link from "next/link";
+import { Plus_Jakarta_Sans, Caveat, JetBrains_Mono } from "next/font/google";
 import "../styles/globals.css";
+import { ViewModeProvider } from "../lib/ViewModeContext";
+import { AppHeader } from "../components/AppHeader";
+
+const sansFont = Plus_Jakarta_Sans({
+  subsets: ["latin"],
+  variable: "--font-sans",
+  display: "swap",
+});
+
+const handwritingFont = Caveat({
+  subsets: ["latin"],
+  variable: "--font-handwriting",
+  display: "swap",
+});
+
+const monoFont = JetBrains_Mono({
+  subsets: ["latin"],
+  variable: "--font-mono",
+  display: "swap",
+});
 
 export const metadata: Metadata = {
-  title: "ShadowLedger — AI Finance Controller",
+  title: "ShadowLedger — Intelligent Financial Investigation Notebook",
   description: "Uncertainty-aware value-flow reconstruction engine for finance operations",
 };
 
@@ -13,59 +33,33 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className="dark">
-      <body className="bg-[#090d16] text-slate-100 min-h-screen flex flex-col antialiased selection:bg-emerald-500 selection:text-black">
-        {/* Top Navigation Bar */}
-        <header className="border-b border-slate-800/80 bg-[#0f172a]/90 backdrop-blur sticky top-0 z-50 px-6 py-3.5 flex items-center justify-between">
-          <div className="flex items-center space-x-6">
-            <Link href="/" className="flex items-center space-x-2.5">
-              <div className="w-8 h-8 rounded-lg bg-gradient-to-tr from-emerald-600 to-teal-400 flex items-center justify-center font-bold text-black text-lg shadow-lg shadow-emerald-500/20">
-                S
-              </div>
-              <div>
-                <span className="font-bold text-base tracking-tight text-white">ShadowLedger</span>
-                <span className="ml-2 text-[10px] uppercase font-mono px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-                  Track 04
-                </span>
-              </div>
-            </Link>
+    <html
+      lang="en"
+      className={`${sansFont.variable} ${handwritingFont.variable} ${monoFont.variable}`}
+    >
+      <body className="bg-[#faf8f5] text-stone-900 min-h-screen flex flex-col antialiased selection:bg-emerald-200 selection:text-emerald-950 font-sans notebook-grid">
+        <ViewModeProvider>
+          {/* Top Navigation Bar */}
+          <AppHeader />
 
-            <nav className="hidden md:flex items-center space-x-1 text-sm font-medium text-slate-400">
-              <Link href="/" className="px-3 py-1.5 rounded-md hover:text-white hover:bg-slate-800/60 transition">
-                Command Center
-              </Link>
-              <Link href="/exceptions" className="px-3 py-1.5 rounded-md hover:text-white hover:bg-slate-800/60 transition">
-                Exception Queue
-              </Link>
-              <Link href="/patterns" className="px-3 py-1.5 rounded-md hover:text-white hover:bg-slate-800/60 transition flex items-center space-x-1">
-                <span className="w-1.5 h-1.5 rounded-full bg-purple-400"></span>
-                <span>Fleet Patterns (P0)</span>
-              </Link>
-              <Link href="/benchmark" className="px-3 py-1.5 rounded-md hover:text-white hover:bg-slate-800/60 transition">
-                Defensibility Benchmark
-              </Link>
-            </nav>
-          </div>
+          {/* Main Content Area */}
+          <main className="flex-1 max-w-7xl w-full mx-auto p-5 sm:p-7 md:p-8">
+            {children}
+          </main>
 
-          <div className="flex items-center space-x-4 text-xs font-mono">
-            <div className="flex items-center space-x-2 bg-slate-900 border border-slate-800 px-3 py-1.5 rounded-full text-slate-400">
-              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-              <span>FastAPI :8000</span>
-              <span className="text-slate-600">|</span>
-              <span>DuckDB Embedded</span>
+          {/* Notebook Style Footer */}
+          <footer className="border-t border-[#e7e2d9] bg-[#ffffff]/80 backdrop-blur px-6 py-4 text-center text-xs text-stone-500 font-sans flex flex-col sm:flex-row items-center justify-between gap-2 max-w-7xl w-full mx-auto">
+            <div className="flex items-center space-x-2">
+              <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
+              <span className="font-semibold text-stone-700">ShadowLedger Notebook</span>
+              <span className="text-stone-300">&bull;</span>
+              <span>Deterministic Core &amp; Value-Flow Reconstruction</span>
             </div>
-          </div>
-        </header>
-
-        {/* Main Content Area */}
-        <main className="flex-1 max-w-7xl w-full mx-auto p-6 md:p-8">
-          {children}
-        </main>
-
-        {/* Footer */}
-        <footer className="border-t border-slate-800/60 bg-[#090d16] px-6 py-4 text-center text-xs text-slate-500 font-mono">
-          ShadowLedger &bull; Razorpay AI Buildathon Track 04 &bull; Deterministic Core &amp; Value-Flow Reconstruction
-        </footer>
+            <div className="text-[11px] text-stone-400 font-mono">
+              Razorpay AI Buildathon Track 04 &bull; Offline Local-First
+            </div>
+          </footer>
+        </ViewModeProvider>
       </body>
     </html>
   );

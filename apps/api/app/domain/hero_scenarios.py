@@ -34,12 +34,15 @@ def get_hero_a_kirana() -> tuple[str, list[dict[str, Any]], dict[str, Any]]:
                 "merchant_id": "MERCH-KIRANA-01",
                 "customer_id": "CUST-ANIL-99",
             },
+            "inventory_move": {
+                "item_description": "Dairy Milk Chocolate Change",
+                "quantity": 1,
+                "retail_value": 2.0,
+                "valuation_basis": "retail",
+                "linked_order_id": "ORD-KIRANA-HERO",
+            },
             "raw_payload": {
                 "scenario_id": "SCN_04",
-                "item_description": "Dairy Milk Chocolate 10g",
-                "inventory_change_qty": -1,
-                "inventory_retail_value": 2.0,
-                "valuation_basis": "retail",
             },
         },
         {

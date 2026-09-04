@@ -172,7 +172,7 @@ class CaseRepository:
                 decided_at=row[21],
             )
 
-        return Case(
+        c = Case(
             case_id=row[0],
             batch_id=row[1],
             observation_ids=json.loads(row[2]) if row[2] else [],
@@ -185,6 +185,44 @@ class CaseRepository:
             created_at=row[9],
             decision=decision,
         )
+        c.shadow_events = self.get_shadow_events_for_case(c)
+        return c
+
+    def get_shadow_events_for_case(self, case: Case) -> list[Event]:
+        from app.domain.enums import EventStatus, EventType, HypothesisType
+        from app.domain.models import Event
+
+        rows = self.db.query_all(
+            """
+            SELECT event_id, status, event_type, amount, currency, timestamp,
+                   entity_ids, source_observation_ids, confidence, hypothesis_type,
+                   contradiction_ids, batch_id
+            FROM events
+            WHERE batch_id = ? AND status != 'observed'
+            """,
+            [case.batch_id]
+        )
+        
+        events = []
+        case_obs_set = set(case.observation_ids)
+        for r in rows:
+            obs_ids = json.loads(r[7]) if r[7] else []
+            if set(obs_ids).intersection(case_obs_set):
+                events.append(Event(
+                    event_id=r[0],
+                    status=EventStatus(r[1]),
+                    event_type=EventType(r[2]),
+                    amount=Decimal(str(r[3])),
+                    currency=r[4],
+                    timestamp=r[5],
+                    entity_ids=json.loads(r[6]) if r[6] else {},
+                    source_observation_ids=obs_ids,
+                    confidence=r[8],
+                    hypothesis_type=HypothesisType(r[9]) if r[9] else None,
+                    contradiction_ids=json.loads(r[10]) if r[10] else [],
+                    batch_id=r[11],
+                ))
+        return events
 
     def save_events(self, events: list[Event]) -> None:
         """Insert or replace normalized financial and shadow ledger events."""
@@ -221,6 +259,10 @@ class CaseRepository:
         if not clusters:
             return
 
+        batch_ids = {c.batch_id for c in clusters}
+        for b_id in batch_ids:
+            self.db.execute("DELETE FROM pattern_clusters WHERE batch_id = ?", [b_id])
+
         cluster_data = [
             (
                 c.cluster_id,
@@ -243,19 +285,29 @@ class CaseRepository:
             cluster_data,
         )
 
-    def get_pattern_clusters_by_batch(self, batch_id: str) -> list[PatternCluster]:
-        """Fetch all pattern clusters for a batch."""
-        rows = self.db.query_all(
+    def get_pattern_clusters_by_batch(self, batch_id: str | None = None) -> list[PatternCluster]:
+        """Fetch pattern clusters for a batch, or all clusters if batch_id is None."""
+        if batch_id:
+            query = """
+                SELECT cluster_id, batch_id, case_ids, pattern_signature,
+                       exception_count, total_value_at_risk, likely_common_cause,
+                       evidence_strength, created_at
+                FROM pattern_clusters
+                WHERE batch_id = ?
+                ORDER BY total_value_at_risk DESC
             """
-            SELECT cluster_id, batch_id, case_ids, pattern_signature,
-                   exception_count, total_value_at_risk, likely_common_cause,
-                   evidence_strength, created_at
-            FROM pattern_clusters
-            WHERE batch_id = ?
-            ORDER BY total_value_at_risk DESC
-            """,
-            [batch_id],
-        )
+            params = [batch_id]
+        else:
+            query = """
+                SELECT cluster_id, batch_id, case_ids, pattern_signature,
+                       exception_count, total_value_at_risk, likely_common_cause,
+                       evidence_strength, created_at
+                FROM pattern_clusters
+                ORDER BY total_value_at_risk DESC
+            """
+            params = []
+
+        rows = self.db.query_all(query, params)
 
         return [
             PatternCluster(

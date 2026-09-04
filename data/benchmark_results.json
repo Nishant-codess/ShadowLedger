@@ -11,11 +11,11 @@
     "unresolved_count": 0,
     "match_rate": 81.57,
     "enhanced_resolution_rate": 0.0,
-    "throughput_records_per_sec": 326625.3,
+    "throughput_records_per_sec": 308862.0,
     "total_volume_inr": 50770611.31,
     "explained_volume_inr": 49312472.31,
     "unexplained_volume_inr": 1458139.0,
-    "processing_time_ms": 30.62,
+    "processing_time_ms": 32.38,
     "ground_truth_precision": 100.0,
     "ground_truth_recall": 100.0,
     "latent_hypothesis_accuracy": null,
@@ -101,11 +101,11 @@
     "unresolved_count": 138,
     "match_rate": 81.57,
     "enhanced_resolution_rate": 81.57,
-    "throughput_records_per_sec": 76713.4,
+    "throughput_records_per_sec": 69283.2,
     "total_volume_inr": 50945341.87,
     "explained_volume_inr": 50770611.31,
     "unexplained_volume_inr": 174730.56,
-    "processing_time_ms": 130.36,
+    "processing_time_ms": 144.34,
     "ground_truth_precision": 100.0,
     "ground_truth_recall": 100.0,
     "latent_hypothesis_accuracy": 100.0,
@@ -262,35 +262,35 @@
   },
   "pattern_clusters": [
     {
-      "cluster_id": "pat_cbaf9bdd20",
+      "cluster_id": "pat_8353962dc8",
       "signature": "REFUND",
       "exceptions": 611,
       "value_at_risk": 2726479.0,
       "likely_common_cause": "Repeated customer return / partial refund cycle across 611 orders (Total returned volume: \u20b92726479.00). Likely downstream partial return before settlement."
     },
     {
-      "cluster_id": "pat_e55a778731",
+      "cluster_id": "pat_d3a1ebed31",
       "signature": "MISSING_PAYMENT",
       "exceptions": 79,
       "value_at_risk": 394921.0,
       "likely_common_cause": "Recurring structural discrepancy pattern across 79 cases (Total value at risk: \u20b9394921.00). Likely shared operational origin."
     },
     {
-      "cluster_id": "pat_a9fb0010f4",
+      "cluster_id": "pat_8970cdffce",
       "signature": "OFF_LEDGER_DEVIATION",
       "exceptions": 238,
       "value_at_risk": 45320.0,
       "likely_common_cause": "Recurring mobility fare deviation pattern across 238 trips (Total unrecorded value at risk: \u20b945320.00). Possible off-ledger fare discrepancy."
     },
     {
-      "cluster_id": "pat_5437d1f616",
+      "cluster_id": "pat_1ce79acb77",
       "signature": "UNKNOWN",
       "exceptions": 39,
       "value_at_risk": 39585.0,
       "likely_common_cause": "Recurring structural discrepancy pattern across 39 cases (Total value at risk: \u20b939585.00). Likely shared operational origin."
     },
     {
-      "cluster_id": "pat_bfa5bd36a1",
+      "cluster_id": "pat_25baa18181",
       "signature": "DUPLICATE_REVERSAL",
       "exceptions": 2,
       "value_at_risk": 4060.0,

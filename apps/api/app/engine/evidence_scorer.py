@@ -149,7 +149,16 @@ class EvidenceScorer:
             return 0.50
 
         elif htype == HypothesisType.OFF_LEDGER_DEVIATION:
-            # Off-ledger deviations represent unrecorded gaps; amount matches observed difference
+            # Off-ledger deviations represent unrecorded gaps; amount matches observed difference or external trace
+            ext_traces = [o.amount for o in observations if o.source_system in ("external_trace", "driver_upi")]
+            target_dev = sum(ext_traces, Decimal("0.00")) if ext_traces else None
+            if target_dev is None:
+                for o in observations:
+                    if "cash_deviation" in o.raw_payload:
+                        target_dev = Decimal(str(o.raw_payload["cash_deviation"]))
+                        break
+            if target_dev is not None and abs(target_dev - gen_amt) <= Decimal("0.01"):
+                return 0.95
             residual = abs(total_p - total_s)
             if abs(residual - gen_amt) <= Decimal("0.01"):
                 return 0.95
@@ -235,13 +244,14 @@ class EvidenceScorer:
                 return 1.0
             return 0.75
 
-        elif htype == HypothesisType.REFUND:
+        elif htype in (HypothesisType.REFUND, HypothesisType.STORE_CREDIT):
             if any(o.source_system in ("ride_platform", "external_trace", "driver_upi", "ola", "uber") or "ride_id" in o.entity_ids for o in observations):
-                return 0.40  # Incongruent: Retail product return rule applied to mobility ride platform
-            return 0.90
+                return 0.30  # Incongruent: Retail product return/store credit rule applied to mobility ride platform
+            return 0.90 if htype == HypothesisType.REFUND else 0.70
 
         elif htype == HypothesisType.OFF_LEDGER_DEVIATION:
-            # Fits known mobility cash overcharge pattern (₹20 to ₹200)
+            if any(o.source_system in ("ride_platform", "external_trace", "driver_upi", "ola", "uber") or "ride_id" in o.entity_ids for o in observations):
+                return 0.98  # Highly congruent: Mobility ride platform with external QR/cash deviation
             amt = hypothesis.generated_event.amount
             if Decimal("10.00") <= amt <= Decimal("500.00"):
                 return 0.95
@@ -256,6 +266,9 @@ class EvidenceScorer:
         elif hypothesis.hypothesis_type == HypothesisType.OFF_LEDGER_DEVIATION:
             # Absence of direct record incurs modest parsimony penalty
             return 0.30
+        elif hypothesis.hypothesis_type == HypothesisType.INVENTORY_SETTLEMENT:
+            # We have direct InventoryMove data, so assumption cost is zero
+            return 0.00
         return 0.10
 
     def _score_contradiction_cost(self, hypothesis: Hypothesis, observations: list[Observation]) -> float:

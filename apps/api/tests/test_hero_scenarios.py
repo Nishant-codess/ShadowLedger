@@ -28,6 +28,27 @@ def test_hero_a_kirana_resolves_via_chocolate_inventory():
     assert result.auto_resolved_count == 1
     assert result.unexplained_volume_inr == Decimal("0.00")
 
+    # Regression 1: Prove Hero A normalizes an InventoryMove
+    assert len(inv) == 1
+    assert inv[0].item_description == "Dairy Milk Chocolate Change"
+    assert inv[0].retail_value == Decimal("2.0")
+
+    # Regression 2: Prove Hero A selects INVENTORY_SETTLEMENT
+    assert len(result.cases) == 1
+    case = result.cases[0]
+    assert case.decision is not None
+    assert "AUTO_RESOLVED_INVENTORY_SETTLEMENT_HIGH_CONFIDENCE" in case.decision.reason_codes
+
+    # Regression 3: Prove a shadow event is materialized and serialized
+    assert len(case.shadow_events) == 1
+    shadow_event = case.shadow_events[0]
+    assert shadow_event.hypothesis_type.value == "inventory_settlement"
+    assert shadow_event.amount == Decimal("2.0")
+
+    # Ensure it serializes correctly to JSON via Pydantic
+    serialized = case.model_dump(mode="json")
+    assert len(serialized["shadow_events"]) == 1
+    assert serialized["shadow_events"][0]["hypothesis_type"] == "inventory_settlement"
 
 def test_hero_b_mobility_enforces_off_ledger_safety_gate():
     """Verify Hero B: Ride 1 goes to HUMAN_REVIEW with trace; Ride 2 is not auto-resolved."""

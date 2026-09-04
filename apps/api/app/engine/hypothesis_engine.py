@@ -162,7 +162,21 @@ class LatentHypothesisEngine:
         )
 
         if is_ride_or_deviation:
-            deviation_amount = abs(net_residual) if net_residual != Decimal("0.00") else Decimal("50.00")
+            ext_amounts = [
+                o.amount for o in observations
+                if o.source_system in ("external_trace", "driver_upi")
+                or "external" in o.raw_payload.get("source_type", "")
+                or "upi_extra" in o.source_record_id
+            ]
+            if ext_amounts:
+                deviation_amount = sum(ext_amounts, Decimal("0.00"))
+            else:
+                dev_val = Decimal("0.00")
+                for o in observations:
+                    if "cash_deviation" in o.raw_payload:
+                        dev_val = Decimal(str(o.raw_payload["cash_deviation"]))
+                        break
+                deviation_amount = dev_val if dev_val > 0 else (abs(net_residual) if net_residual != Decimal("0.00") else Decimal("50.00"))
             deviation_event = Event(
                 status=EventStatus.UNOBSERVED_DEVIATION,
                 event_type=EventType.PAYMENT,

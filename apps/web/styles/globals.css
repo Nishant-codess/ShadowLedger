@@ -1,32 +1,103 @@
 @import "tailwindcss";
 
 :root {
-  --background: #090d16;
-  --foreground: #f1f5f9;
-  --card: #0f172a;
-  --card-foreground: #f8fafc;
-  --popover: #0f172a;
-  --popover-foreground: #f8fafc;
+  --background: #faf8f5;
+  --foreground: #1c1917;
+  --card: #ffffff;
+  --card-foreground: #1c1917;
+  --border: #e7e2d9;
+  --notebook-line: #f0ebe1;
   --primary: #10b981;
   --primary-foreground: #022c22;
-  --secondary: #1e293b;
-  --secondary-foreground: #f8fafc;
-  --muted: #1e293b;
-  --muted-foreground: #94a3b8;
-  --accent: #3b82f6;
-  --accent-foreground: #eff6ff;
-  --destructive: #ef4444;
-  --destructive-foreground: #f8fafc;
-  --border: #1e293b;
-  --input: #1e293b;
-  --ring: #10b981;
+  
+  /* Semantic Pastel Tokens */
+  --pastel-blue-bg: #e0f2fe;
+  --pastel-blue-border: #7dd3fc;
+  --pastel-blue-text: #0369a1;
+  
+  --pastel-lavender-bg: #f3e8ff;
+  --pastel-lavender-border: #d8b4fe;
+  --pastel-lavender-text: #581c87;
+  
+  --pastel-mint-bg: #dcfce7;
+  --pastel-mint-border: #86efac;
+  --pastel-mint-text: #14532d;
+  
+  --pastel-butter-bg: #fef9c3;
+  --pastel-butter-border: #fde047;
+  --pastel-butter-text: #713f12;
+  
+  --pastel-peach-bg: #ffedd5;
+  --pastel-peach-border: #fdba74;
+  --pastel-peach-text: #7c2d12;
 }
 
 body {
   background-color: var(--background);
   color: var(--foreground);
-  font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  font-family: var(--font-sans), ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   margin: 0;
   padding: 0;
   min-height: 100vh;
+}
+
+/* Notebook Grid Pattern */
+.notebook-grid {
+  background-image: radial-gradient(#d6cec2 1px, transparent 1px);
+  background-size: 20px 20px;
+}
+
+/* Handwriting Font utility */
+.font-handwriting {
+  font-family: var(--font-handwriting), "Caveat", "Comic Sans MS", cursive;
+}
+
+/* Semantic Pastel Classes */
+.badge-observed {
+  background-color: #f0f9ff;
+  border: 1px solid #7dd3fc;
+  color: #0369a1;
+}
+
+.badge-reconstructed {
+  background-color: #faf5ff;
+  border: 1px solid #d8b4fe;
+  color: #581c87;
+}
+
+.badge-resolved {
+  background-color: #f0fdf4;
+  border: 1px solid #86efac;
+  color: #14532d;
+}
+
+.badge-review {
+  background-color: #fefce8;
+  border: 1px solid #fde047;
+  color: #713f12;
+}
+
+.badge-unresolved {
+  background-color: #fff7ed;
+  border: 1px solid #fdba74;
+  color: #7c2d12;
+}
+
+/* Notebook Sticky Note Accent */
+.sticky-note-butter {
+  background-color: #fef9c3;
+  border: 1px solid #fde047;
+  box-shadow: 2px 3px 12px rgba(180, 83, 9, 0.08);
+}
+
+.sticky-note-lavender {
+  background-color: #f3e8ff;
+  border: 1px solid #d8b4fe;
+  box-shadow: 2px 3px 12px rgba(107, 33, 168, 0.08);
+}
+
+.sticky-note-blue {
+  background-color: #e0f2fe;
+  border: 1px solid #7dd3fc;
+  box-shadow: 2px 3px 12px rgba(3, 105, 161, 0.08);
 }

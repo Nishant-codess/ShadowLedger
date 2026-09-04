@@ -15,12 +15,6 @@ def list_patterns(
     case_repo: CaseRepository = Depends(get_case_repo),
 ) -> list[PatternClusterResponse]:
     """Retrieve recurring structural pattern clusters discovered across cases."""
-    if not batch_id:
-        batches = case_repo.list_all_batches()
-        if not batches:
-            return []
-        batch_id = batches[0].batch_id
-
     clusters = case_repo.get_pattern_clusters_by_batch(batch_id)
     return [
         PatternClusterResponse(
