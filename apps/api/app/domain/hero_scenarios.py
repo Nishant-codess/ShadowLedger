@@ -28,14 +28,14 @@ def get_hero_a_kirana() -> tuple[str, list[dict[str, Any]], dict[str, Any]]:
             "amount": 100.0,
             "currency": "INR",
             "timestamp": t0.isoformat(),
-            "description": "Kirana Store Sale: Groceries + Chocolate Change",
+            "description": "Kirana Store Sale: Groceries + Eclairs Candy Change",
             "entity_ids": {
                 "order_id": "ORD-KIRANA-HERO",
                 "merchant_id": "MERCH-KIRANA-01",
                 "customer_id": "CUST-ANIL-99",
             },
             "inventory_move": {
-                "item_description": "Dairy Milk Chocolate Change",
+                "item_description": "Cadbury Eclairs Candy Change",
                 "quantity": 1,
                 "retail_value": 2.0,
                 "valuation_basis": "retail",
@@ -185,7 +185,7 @@ def get_hero_c_patterns() -> tuple[str, list[dict[str, Any]], dict[str, Any]]:
                 "description": f"POS Sale {order_id}",
                 "entity_ids": {"order_id": order_id, "merchant_id": merch_id},
                 "inventory_move": {
-                    "item_description": "Dairy Milk Chocolate Change",
+                    "item_description": "Cadbury Eclairs Candy Change",
                     "quantity": 1,
                     "retail_value": 2.0,
                     "valuation_basis": "retail",

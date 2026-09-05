@@ -15,7 +15,7 @@ from dataclasses import dataclass, field
 from decimal import Decimal
 from typing import Any
 
-from app.domain.enums import DecisionType
+from app.domain.enums import DecisionType, ReconciliationStatus
 from app.domain.models import Case, Event, InventoryMove, Observation, PatternCluster
 from app.engine.decision_gate import DecisionRiskGate
 from app.engine.evidence_scorer import EvidenceScorer
@@ -133,7 +133,10 @@ class ValueFlowReconstructionEngine:
         unresolved_count = 0
 
         # Account for baseline exact matches as already auto-resolved
-        explained_volume = sum((mg.total_volume for mg in baseline_matches), Decimal("0.00"))
+        explained_volume = sum(
+            (mg.total_volume for mg in baseline_matches if mg.status == ReconciliationStatus.MATCHED),
+            Decimal("0.00"),
+        )
 
         for base_case in baseline_cases:
             case_obs = [obs_map[oid] for oid in base_case.observation_ids if oid in obs_map]
@@ -197,7 +200,8 @@ class ValueFlowReconstructionEngine:
             # Track outcome counts and volume
             if decision.decision == DecisionType.AUTO_RESOLVE:
                 auto_resolved_count += 1
-                explained_volume += case.financial_impact
+                case_volume = sum((o.amount for o in case_obs), Decimal("0.00"))
+                explained_volume += case_volume
                 case.status = "auto_resolved"
             elif decision.decision == DecisionType.HUMAN_REVIEW:
                 human_review_count += 1

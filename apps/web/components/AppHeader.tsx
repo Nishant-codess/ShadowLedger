@@ -115,6 +115,8 @@ export function AppHeader() {
           </button>
         </div>
 
+
+
         {/* Engine Status Pill */}
         <div className="hidden sm:flex items-center space-x-2 bg-white border border-[#e7e2d9] px-2.5 py-1.5 rounded-full text-[11px] font-mono text-stone-600 shadow-2xs">
           <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>

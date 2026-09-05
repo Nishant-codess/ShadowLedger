@@ -4,9 +4,9 @@
 
 ### **ShadowLedger: Uncertainty-Aware Value-Flow Reconstruction Engine**
 
-[![Product Version](https://img.shields.io/badge/Version-1.0.0%20(Production%20Frozen)-10B981?style=for-the-badge&logo=semver&logoColor=white)](file:///Users/nishant/Desktop/ShadowLedger/docs/PRD.md)
-[![Track](https://img.shields.io/badge/Track-Razorpay%20Track%2004%3A%20AI%20Finance%20Controller-blueviolet?style=for-the-badge&logo=razorpay)](file:///Users/nishant/Desktop/ShadowLedger/docs/PRD.md)
-[![Specification Standard](https://img.shields.io/badge/Standard-IEEE%20830%20Aligned-6366F1?style=for-the-badge)](file:///Users/nishant/Desktop/ShadowLedger/docs/PRD.md)
+[![Product Version](https://img.shields.io/badge/Version-1.0.0%20(Production%20Frozen)-10B981?style=for-the-badge&logo=semver&logoColor=white)](./PRD.md)
+[![Track](https://img.shields.io/badge/Track-Razorpay%20Track%2004%3A%20AI%20Finance%20Controller-blueviolet?style=for-the-badge&logo=razorpay)](./PRD.md)
+[![Specification Standard](https://img.shields.io/badge/Standard-IEEE%20830%20Aligned-6366F1?style=for-the-badge)](./PRD.md)
 
 </div>
 

@@ -4,9 +4,9 @@
 
 ### **Uncertainty-Aware Value-Flow Graph Reconstruction for Emerging-Market Financial Reconciliation**
 
-[![Category](https://img.shields.io/badge/Category-Financial%20Technology%20%7C%20Applied%20Graph%20Theory-8B5CF6?style=for-the-badge)](file:///Users/nishant/Desktop/ShadowLedger/docs/ACADEMIC_RESEARCH_REPORT.md)
-[![Status](https://img.shields.io/badge/Status-Peer%20Review%20Ready-10B981?style=for-the-badge)](file:///Users/nishant/Desktop/ShadowLedger/docs/ACADEMIC_RESEARCH_REPORT.md)
-[![Citation Standard](https://img.shields.io/badge/Citation-APA%207th%20Edition-3B82F6?style=for-the-badge)](file:///Users/nishant/Desktop/ShadowLedger/docs/ACADEMIC_RESEARCH_REPORT.md)
+[![Category](https://img.shields.io/badge/Category-Financial%20Technology%20%7C%20Applied%20Graph%20Theory-8B5CF6?style=for-the-badge)](./ACADEMIC_RESEARCH_REPORT.md)
+[![Status](https://img.shields.io/badge/Status-Peer%20Review%20Ready-10B981?style=for-the-badge)](./ACADEMIC_RESEARCH_REPORT.md)
+[![Citation Standard](https://img.shields.io/badge/Citation-APA%207th%20Edition-3B82F6?style=for-the-badge)](./ACADEMIC_RESEARCH_REPORT.md)
 
 </div>
 

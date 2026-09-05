@@ -16,6 +16,7 @@ from fastapi.middleware.cors import CORSMiddleware  # noqa: E402
 from app.api.routes import (  # noqa: E402
     batches_router,
     cases_router,
+    chat_router,
     demo_router,
     health_router,
     metrics_router,
@@ -61,6 +62,7 @@ app.add_middleware(
 app.include_router(health_router)
 app.include_router(batches_router)
 app.include_router(cases_router)
+app.include_router(chat_router)
 app.include_router(demo_router)
 app.include_router(metrics_router)
 app.include_router(patterns_router)

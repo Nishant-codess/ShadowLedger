@@ -101,3 +101,227 @@ body {
   border: 1px solid #7dd3fc;
   box-shadow: 2px 3px 12px rgba(3, 105, 161, 0.08);
 }
+
+/* 2. Midnight Fintech Theme */
+[data-theme="midnight"] {
+  --background: #090d16;
+  --foreground: #f8fafc;
+  --card: #111726;
+  --card-foreground: #f8fafc;
+  --border: #232d42;
+  --notebook-line: #172033;
+}
+
+[data-theme="midnight"] body {
+  background-color: #090d16 !important;
+  color: #f8fafc !important;
+}
+
+[data-theme="midnight"] .bg-white {
+  background-color: #111726 !important;
+  color: #f8fafc !important;
+}
+
+[data-theme="midnight"] .bg-\[\#faf8f5\] {
+  background-color: #0c121e !important;
+  color: #f8fafc !important;
+}
+
+[data-theme="midnight"] .bg-\[\#faf8f5\]\/50 {
+  background-color: #0c121e !important;
+}
+
+[data-theme="midnight"] .bg-stone-50 {
+  background-color: #0f1626 !important;
+}
+
+[data-theme="midnight"] .bg-stone-100 {
+  background-color: #172237 !important;
+}
+
+/* Text Overrides for Midnight */
+[data-theme="midnight"] .text-stone-900,
+[data-theme="midnight"] .text-slate-900,
+[data-theme="midnight"] .text-gray-900,
+[data-theme="midnight"] .text-black {
+  color: #f8fafc !important;
+}
+
+[data-theme="midnight"] .text-stone-800,
+[data-theme="midnight"] .text-slate-800,
+[data-theme="midnight"] .text-gray-800 {
+  color: #e2e8f0 !important;
+}
+
+[data-theme="midnight"] .text-stone-700,
+[data-theme="midnight"] .text-slate-700,
+[data-theme="midnight"] .text-gray-700 {
+  color: #cbd5e1 !important;
+}
+
+[data-theme="midnight"] .text-stone-600,
+[data-theme="midnight"] .text-slate-600,
+[data-theme="midnight"] .text-gray-600 {
+  color: #94a3b8 !important;
+}
+
+[data-theme="midnight"] .text-stone-500,
+[data-theme="midnight"] .text-slate-500,
+[data-theme="midnight"] .text-gray-500 {
+  color: #64748b !important;
+}
+
+[data-theme="midnight"] .text-stone-400,
+[data-theme="midnight"] .text-slate-400 {
+  color: #475569 !important;
+}
+
+/* Borders */
+[data-theme="midnight"] .border-\[\#e7e2d9\],
+[data-theme="midnight"] .border-\[\#e2ddd5\],
+[data-theme="midnight"] .border-stone-100,
+[data-theme="midnight"] .border-stone-200,
+[data-theme="midnight"] .border-stone-300 {
+  border-color: #232d42 !important;
+}
+
+/* Semantic Pastel Containers in Dark Mode */
+[data-theme="midnight"] .bg-\[\#f0f9ff\],
+[data-theme="midnight"] .bg-\[\#e0f2fe\],
+[data-theme="midnight"] .bg-blue-50,
+[data-theme="midnight"] .badge-observed {
+  background-color: #0c2440 !important;
+  border-color: #1e4976 !important;
+  color: #7dd3fc !important;
+}
+
+[data-theme="midnight"] .bg-\[\#faf5ff\],
+[data-theme="midnight"] .bg-\[\#f3e8ff\],
+[data-theme="midnight"] .bg-purple-50,
+[data-theme="midnight"] .badge-reconstructed {
+  background-color: #23153c !important;
+  border-color: #4c2882 !important;
+  color: #d8b4fe !important;
+}
+
+[data-theme="midnight"] .bg-\[\#f0fdf4\],
+[data-theme="midnight"] .bg-\[\#dcfce7\],
+[data-theme="midnight"] .bg-emerald-50,
+[data-theme="midnight"] .badge-resolved {
+  background-color: #0c281a !important;
+  border-color: #166534 !important;
+  color: #86efac !important;
+}
+
+[data-theme="midnight"] .bg-\[\#fefce8\],
+[data-theme="midnight"] .bg-\[\#fef9c3\],
+[data-theme="midnight"] .bg-amber-50,
+[data-theme="midnight"] .bg-amber-50\/80,
+[data-theme="midnight"] .badge-review {
+  background-color: #2b2208 !important;
+  border-color: #854d0e !important;
+  color: #fde047 !important;
+}
+
+[data-theme="midnight"] .bg-\[\#fff7ed\],
+[data-theme="midnight"] .bg-\[\#ffedd5\],
+[data-theme="midnight"] .bg-orange-50,
+[data-theme="midnight"] .badge-unresolved {
+  background-color: #2d170b !important;
+  border-color: #9a3412 !important;
+  color: #fdba74 !important;
+}
+
+/* Semantic Text Colors in Dark Mode */
+[data-theme="midnight"] .text-blue-900,
+[data-theme="midnight"] .text-blue-800,
+[data-theme="midnight"] .text-blue-700,
+[data-theme="midnight"] .text-\[\#0369a1\] {
+  color: #38bdf8 !important;
+}
+
+[data-theme="midnight"] .text-purple-900,
+[data-theme="midnight"] .text-purple-800,
+[data-theme="midnight"] .text-purple-700,
+[data-theme="midnight"] .text-\[\#581c87\] {
+  color: #c084fc !important;
+}
+
+[data-theme="midnight"] .text-emerald-900,
+[data-theme="midnight"] .text-emerald-800,
+[data-theme="midnight"] .text-emerald-700,
+[data-theme="midnight"] .text-\[\#14532d\] {
+  color: #4ade80 !important;
+}
+
+[data-theme="midnight"] .text-amber-900,
+[data-theme="midnight"] .text-amber-800,
+[data-theme="midnight"] .text-amber-700,
+[data-theme="midnight"] .text-\[\#713f12\] {
+  color: #facc15 !important;
+}
+
+[data-theme="midnight"] .text-orange-900,
+[data-theme="midnight"] .text-orange-800,
+[data-theme="midnight"] .text-orange-700,
+[data-theme="midnight"] .text-\[\#7c2d12\] {
+  color: #fb923c !important;
+}
+
+/* Inputs & Form Controls in Dark Mode */
+[data-theme="midnight"] input,
+[data-theme="midnight"] textarea,
+[data-theme="midnight"] select {
+  background-color: #141c2e !important;
+  color: #f8fafc !important;
+  border-color: #2b3952 !important;
+}
+
+[data-theme="midnight"] input::placeholder,
+[data-theme="midnight"] textarea::placeholder {
+  color: #64748b !important;
+}
+
+/* Sticky notes */
+[data-theme="midnight"] .sticky-note-butter {
+  background-color: #2b2208 !important;
+  border-color: #854d0e !important;
+  color: #fde047 !important;
+}
+
+[data-theme="midnight"] .sticky-note-lavender {
+  background-color: #23153c !important;
+  border-color: #4c2882 !important;
+  color: #d8b4fe !important;
+}
+
+[data-theme="midnight"] .sticky-note-blue {
+  background-color: #0c2440 !important;
+  border-color: #1e4976 !important;
+  color: #7dd3fc !important;
+}
+
+[data-theme="midnight"] .notebook-grid {
+  background-image: radial-gradient(#1e293b 1px, transparent 1px) !important;
+  background-size: 20px 20px;
+}
+
+/* 3. Nordic Clean Theme */
+[data-theme="nordic"] {
+  --background: #f8fafc;
+  --foreground: #0f172a;
+  --card: #ffffff;
+  --card-foreground: #0f172a;
+  --border: #e2e8f0;
+}
+
+[data-theme="nordic"] body {
+  background-color: #f8fafc !important;
+  color: #0f172a !important;
+}
+
+[data-theme="nordic"] .notebook-grid {
+  background-image: linear-gradient(to right, #f1f5f9 1px, transparent 1px),
+                    linear-gradient(to bottom, #f1f5f9 1px, transparent 1px) !important;
+  background-size: 24px 24px;
+}

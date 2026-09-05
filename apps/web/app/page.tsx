@@ -102,9 +102,7 @@ export default function CommandCenterPage() {
           </h1>
 
           <p className="text-base sm:text-lg text-stone-600 font-sans leading-relaxed">
-            ShadowLedger investigates financial mismatches, reconstructs possible missing value
-            flows (like non-cash inventory change, multi-party fee splits, and timing gaps), shows the
-            evidence behind them, and refuses to guess when evidence is insufficient.
+            ShadowLedger investigates financial mismatches, reconstructs possible missing value flows, shows the evidence behind them, and refuses to guess when evidence is insufficient.
           </p>
 
           {/* Unambiguous Primary & Secondary Action CTAs */}
@@ -114,7 +112,7 @@ export default function CommandCenterPage() {
               disabled={loading}
               className="px-6 py-3.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-sm text-center transition-all shadow-sm hover:shadow-md flex items-center justify-center space-x-2"
             >
-              <span>{loading && activeHero === "hero_a" ? "Loading Hero A..." : "Explore a live case"}</span>
+              <span>{loading && activeHero === "hero_a" ? "Launching live case..." : "Explore a live case"}</span>
               <span className="text-emerald-200">&rarr;</span>
             </button>
 
@@ -191,7 +189,7 @@ export default function CommandCenterPage() {
                   THE MISSING ₹2
                 </h3>
                 <p className="text-xs text-stone-600 mt-1 leading-relaxed">
-                  A ₹100 purchase settled as ₹98 cash + ₹2 physical inventory change.
+                  A ₹100 purchase settled as ₹98 cash + ₹2 Cadbury Eclairs candy change.
                 </p>
               </div>
 
@@ -280,7 +278,7 @@ export default function CommandCenterPage() {
 
               <div>
                 <h3 className="text-lg font-bold text-stone-900 font-sans">
-                  THE PATTERN HIDING IN EXCEPTIONS
+                  THE PATTERN HIDING IN THE EXCEPTIONS
                 </h3>
                 <p className="text-xs text-stone-600 mt-1 leading-relaxed">
                   60 discrepancy records collapse into 3 recurring systemic structural patterns.

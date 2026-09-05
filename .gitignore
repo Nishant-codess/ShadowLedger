@@ -75,3 +75,19 @@ htmlcov/
 .ruff_cache/
 playwright-report/
 test-results/
+
+# Scratch & Temporary local files
+scratch/
+
+# Internal reference & personal build documents
+*.docx
+ShadowLedger_Technical_Build_Guide*
+ShadowLedger_Track04_Build_Spec*
+implementation_plan.md
+docs/VIDEO_SUBMISSION_SCRIPT.md
+apps/web/crawl_audit.js
+apps/web/scripts/
+apps/web/AGENTS.md
+apps/web/CLAUDE.md
+
+

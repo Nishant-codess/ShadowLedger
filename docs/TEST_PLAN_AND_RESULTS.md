@@ -4,9 +4,9 @@
 
 ### **IEEE 829 Standard Test Specifications for ShadowLedger**
 
-[![Test Results](https://img.shields.io/badge/Pytest-59%20%2F%2059%20Passed-10B981?style=for-the-badge&logo=pytest)](file:///Users/nishant/Desktop/ShadowLedger/docs/TEST_PLAN_AND_RESULTS.md)
-[![Static Analysis](https://img.shields.io/badge/Static%20Analysis-Ruff%20%26%20Mypy%20Clean-6366F1?style=for-the-badge)](file:///Users/nishant/Desktop/ShadowLedger/docs/TEST_PLAN_AND_RESULTS.md)
-[![Safety Audit](https://img.shields.io/badge/Safety%20Invariant-0%20False%20Auto--Resolutions-3B82F6?style=for-the-badge)](file:///Users/nishant/Desktop/ShadowLedger/docs/TEST_PLAN_AND_RESULTS.md)
+[![Test Results](https://img.shields.io/badge/Pytest-59%20%2F%2059%20Passed-10B981?style=for-the-badge&logo=pytest)](./TEST_PLAN_AND_RESULTS.md)
+[![Static Analysis](https://img.shields.io/badge/Static%20Analysis-Ruff%20%26%20Mypy%20Clean-6366F1?style=for-the-badge)](./TEST_PLAN_AND_RESULTS.md)
+[![Safety Audit](https://img.shields.io/badge/Safety%20Invariant-0%20False%20Auto--Resolutions-3B82F6?style=for-the-badge)](./TEST_PLAN_AND_RESULTS.md)
 
 </div>
 

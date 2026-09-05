@@ -110,6 +110,9 @@ export interface AIExplainResponse {
   economic_story: string;
   policy_action: string;
   narrative: string;
+  simple_narrative?: string;
+  auditor_narrative?: string;
+  deterministic_narrative?: string;
   provider: string;
   hypothesis_type: string;
   taxonomy_level: string;
@@ -206,9 +209,9 @@ export async function fetchCase(caseId: string): Promise<CaseDetail | null> {
   }
 }
 
-export async function fetchAIExplanation(caseId: string): Promise<AIExplainResponse | null> {
+export async function fetchAIExplanation(caseId: string, style: string = "standard"): Promise<AIExplainResponse | null> {
   try {
-    const res = await fetch(`${API_BASE_URL}/api/cases/${caseId}/explain`, {
+    const res = await fetch(`${API_BASE_URL}/api/cases/${caseId}/explain?style=${encodeURIComponent(style)}`, {
       method: "POST",
     });
     if (!res.ok) return null;
@@ -287,6 +290,30 @@ export async function performCaseAction(
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ action, operator_notes: operatorNotes }),
+    });
+    if (!res.ok) return null;
+    return await res.json();
+  } catch {
+    return null;
+  }
+}
+
+export interface ChatCopilotResponse {
+  response: string;
+  provider: string;
+  grounded_context?: string | null;
+}
+
+export async function chatCopilot(
+  message: string,
+  caseId?: string,
+  batchId?: string
+): Promise<ChatCopilotResponse | null> {
+  try {
+    const res = await fetch(`${API_BASE_URL}/api/chat`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ message, case_id: caseId, batch_id: batchId }),
     });
     if (!res.ok) return null;
     return await res.json();

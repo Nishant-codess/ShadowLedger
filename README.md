@@ -116,7 +116,7 @@ In emerging-market commerce (India), **discrepancies are rarely clerical mistake
 mindmap
   root((Financial Discrepancies))
     Non-Monetary Retail Settlement
-      ₹98 bill + ₹100 cash = ₹2 Chocolate Candy Change
+      ₹100 POS sale - ₹98 bank net = ₹2 Cadbury Eclairs Candy Change
       Physical Commodity Substitution
     Mobility & Gig Economy
       ₹150 official booking vs ₹200 true fare
@@ -139,7 +139,7 @@ ShadowLedger reconciles **economic value flows**, not just static rows. It recon
 | Operational Dimension | Legacy 2-Way / 3-Way Match | ShadowLedger Value-Flow Engine | Advantage |
 | :--- | :--- | :--- | :--- |
 | **Reconciliation Paradigm** | Row-to-row matching (`POS == Bank`) | Directed Value-Flow Graph $G=(V, E)$ &bull; Conservation of Value | 🟢 **Economic Reality** |
-| **Non-Monetary Settlement** | ❌ Fails with ₹2 exception | 🟢 Reconciles via linked inventory movement (`Dairy Milk Change`) | 🟢 **Zero False Exceptions** |
+| **Non-Monetary Settlement** | ❌ Fails with ₹2 exception | 🟢 Reconciles via linked inventory movement (`Cadbury Eclairs Change`) | 🟢 **Zero False Exceptions** |
 | **Gateway MDR Fees** | ❌ Fails or needs rigid hardcoded joins | 🟢 Infers derived fee event & proves conservation closure | 🟢 **Automated Netting** |
 | **Off-Ledger Deviations** | ❌ Fails silently or leaves orphan | 🟢 Detects economic gap, scores evidence, enforces human review | 🟢 **Fraud Protection** |
 | **Safety Risk Handling** | ❌ Binary (Matched / Unmatched) | 🟢 4 Decision Gates &bull; 7-Dimension Calibrated Confidence | 🟢 **Zero Hallucination** |
@@ -318,9 +318,9 @@ journey
     title 5-Minute Evaluation Experience
     section Hero A (Kirana Non-Monetary)
       Ingest POS Bill and Bank Deposit: 5: Operator
-      Engine links Dairy Milk inventory change: 5: Engine
+      Engine links Cadbury Eclairs candy change: 5: Engine
       Conservation equation closes: 5: Engine
-      Safe Auto-Resolve with 0.95 confidence: 5: Decision Gate
+      Safe Auto-Resolve with 0.90 confidence: 5: Decision Gate
     section Hero B (Mobility Fare Safety)
       Ingest Cab Ride Discrepancy: 5: Operator
       Trip 1 with Digital QR Trace Escalates to Human Review: 5: Safety Gate

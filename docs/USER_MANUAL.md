@@ -4,9 +4,9 @@
 
 ### **Step-by-Step Investigation & Playbook Guide for ShadowLedger**
 
-[![Interface](https://img.shields.io/badge/Interface-Next.js%2016%20Workbench-000000?style=for-the-badge&logo=next.js)](file:///Users/nishant/Desktop/ShadowLedger/docs/USER_MANUAL.md)
-[![Role](https://img.shields.io/badge/Role-Financial%20Controller%20%7C%20Reconciliation%20Analyst-6366F1?style=for-the-badge)](file:///Users/nishant/Desktop/ShadowLedger/docs/USER_MANUAL.md)
-[![Operational Playbook](https://img.shields.io/badge/Playbook-Production%20Ready-10B981?style=for-the-badge)](file:///Users/nishant/Desktop/ShadowLedger/docs/USER_MANUAL.md)
+[![Interface](https://img.shields.io/badge/Interface-Next.js%2016%20Workbench-000000?style=for-the-badge&logo=next.js)](./USER_MANUAL.md)
+[![Role](https://img.shields.io/badge/Role-Financial%20Controller%20%7C%20Reconciliation%20Analyst-6366F1?style=for-the-badge)](./USER_MANUAL.md)
+[![Operational Playbook](https://img.shields.io/badge/Playbook-Production%20Ready-10B981?style=for-the-badge)](./USER_MANUAL.md)
 
 </div>
 

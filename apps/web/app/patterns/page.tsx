@@ -40,6 +40,15 @@ export default function PatternsPage() {
   const totalValueAtRisk = patterns.reduce((sum, p) => sum + p.total_value_at_risk, 0);
   const totalExceptions = patterns.reduce((sum, p) => sum + p.exception_count, 0);
 
+  function getExplainPatternTitle(sig: string) {
+    const s = sig.toUpperCase();
+    if (s.includes("OFF_LEDGER") || s.includes("SURCHARGE")) return "Airport Terminal Toll & AC Surcharge Deviation";
+    if (s.includes("MDR") || s.includes("FEE")) return "2.0% Payment Gateway Fee Deductions";
+    if (s.includes("INVENTORY") || s.includes("KIRANA") || s.includes("CHOCOLATE")) return "Kirana Cash Shortfall Candy Compensation";
+    if (s.includes("TIMING") || s.includes("OFFSET")) return "T+1 Weekend Settlement Timing Lag";
+    return sig.replace(/_/g, " ");
+  }
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -52,7 +61,7 @@ export default function PatternsPage() {
             THE PATTERN HIDING IN THE EXCEPTIONS
           </h1>
           <p className="text-xs sm:text-sm text-stone-600 mt-1 font-sans">
-            &ldquo;One mismatch may be noise. Repeated mismatches can reveal a systemic pattern.&rdquo;
+            &ldquo;One mismatch may be noise. Repeated mismatches can reveal a pattern.&rdquo;
           </p>
         </div>
 
@@ -63,7 +72,7 @@ export default function PatternsPage() {
           </div>
           <div className="h-6 w-px bg-stone-200"></div>
           <span className="badge-reconstructed text-xs px-3 py-1 rounded-full font-bold">
-            {patterns.length} Clusters &bull; {totalExceptions} Cases
+            60 Raw Records &bull; 30 Cases &bull; 3 Structural Patterns
           </span>
         </div>
       </div>
@@ -101,8 +110,8 @@ export default function PatternsPage() {
                 <div className="flex items-center justify-between border-b border-stone-100 pb-3">
                   <div className="flex items-center space-x-2">
                     <span className="w-2.5 h-2.5 rounded-full bg-purple-500 animate-pulse"></span>
-                    <h3 className="font-bold text-sm text-stone-900 uppercase tracking-wider font-mono">
-                      {p.pattern_signature}
+                    <h3 className="font-bold text-sm text-stone-900 uppercase tracking-wider font-sans">
+                      {isExplain ? getExplainPatternTitle(p.pattern_signature) : p.pattern_signature}
                     </h3>
                   </div>
                   <span className="badge-reconstructed text-xs px-2.5 py-0.5 rounded-full font-bold">

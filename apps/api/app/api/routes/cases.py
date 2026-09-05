@@ -71,6 +71,7 @@ def get_case(
 @router.post("/{case_id}/explain", response_model=AIExplainResponse)
 def explain_case(
     case_id: str,
+    style: str = "standard",
     case_repo: CaseRepository = Depends(get_case_repo),
     obs_repo: ObservationRepository = Depends(get_obs_repo),
 ) -> AIExplainResponse:
@@ -127,6 +128,7 @@ def explain_case(
         observations=case_obs,
         winning_hypothesis=winning_hyp,
         decision=c.decision,
+        style_variant=style,
     )
 
     return AIExplainResponse(**briefing)

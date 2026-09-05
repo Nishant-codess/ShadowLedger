@@ -4,9 +4,9 @@
 
 ### **ShadowLedger: Uncertainty-Aware Value-Flow Reconstruction Engine**
 
-[![Architecture Paradigm](https://img.shields.io/badge/Architecture-Local--First%20%7C%20Graph--Pipeline-8B5CF6?style=for-the-badge)](file:///Users/nishant/Desktop/ShadowLedger/docs/SYSTEM_ARCHITECTURE.md)
-[![Database](https://img.shields.io/badge/Storage-Embedded%20DuckDB%201.4.5-F59E0B?style=for-the-badge&logo=duckdb)](file:///Users/nishant/Desktop/ShadowLedger/docs/SYSTEM_ARCHITECTURE.md)
-[![API Engine](https://img.shields.io/badge/API-FastAPI%20High--Concurrency-009688?style=for-the-badge&logo=fastapi)](file:///Users/nishant/Desktop/ShadowLedger/docs/SYSTEM_ARCHITECTURE.md)
+[![Architecture Paradigm](https://img.shields.io/badge/Architecture-Local--First%20%7C%20Graph--Pipeline-8B5CF6?style=for-the-badge)](./SYSTEM_ARCHITECTURE.md)
+[![Database](https://img.shields.io/badge/Storage-Embedded%20DuckDB%201.4.5-F59E0B?style=for-the-badge&logo=duckdb)](./SYSTEM_ARCHITECTURE.md)
+[![API Engine](https://img.shields.io/badge/API-FastAPI%20High--Concurrency-009688?style=for-the-badge&logo=fastapi)](./SYSTEM_ARCHITECTURE.md)
 
 </div>
 

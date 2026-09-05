@@ -4,9 +4,9 @@
 
 ### **Key Technical Tradeoffs & Architectural Invariants**
 
-[![ADR Status](https://img.shields.io/badge/Status-7%20Accepted%20%26%20Implemented-10B981?style=for-the-badge)](file:///Users/nishant/Desktop/ShadowLedger/docs/ENGINEERING_DECISIONS.md)
-[![Architecture Paradigm](https://img.shields.io/badge/Design-Deterministic%20Core%20Authority-6366F1?style=for-the-badge)](file:///Users/nishant/Desktop/ShadowLedger/docs/ENGINEERING_DECISIONS.md)
-[![Review Gate](https://img.shields.io/badge/Review-Audit%20Compliant-3B82F6?style=for-the-badge)](file:///Users/nishant/Desktop/ShadowLedger/docs/ENGINEERING_DECISIONS.md)
+[![ADR Status](https://img.shields.io/badge/Status-7%20Accepted%20%26%20Implemented-10B981?style=for-the-badge)](./ENGINEERING_DECISIONS.md)
+[![Architecture Paradigm](https://img.shields.io/badge/Design-Deterministic%20Core%20Authority-6366F1?style=for-the-badge)](./ENGINEERING_DECISIONS.md)
+[![Review Gate](https://img.shields.io/badge/Review-Audit%20Compliant-3B82F6?style=for-the-badge)](./ENGINEERING_DECISIONS.md)
 
 </div>
 

@@ -30,7 +30,7 @@ def test_hero_a_kirana_resolves_via_chocolate_inventory():
 
     # Regression 1: Prove Hero A normalizes an InventoryMove
     assert len(inv) == 1
-    assert inv[0].item_description == "Dairy Milk Chocolate Change"
+    assert inv[0].item_description == "Cadbury Eclairs Candy Change"
     assert inv[0].retail_value == Decimal("2.0")
 
     # Regression 2: Prove Hero A selects INVENTORY_SETTLEMENT

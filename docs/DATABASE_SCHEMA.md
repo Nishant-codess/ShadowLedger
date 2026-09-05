@@ -4,9 +4,9 @@
 
 ### **ShadowLedger Embedded Columnar Storage Model**
 
-[![Database](https://img.shields.io/badge/Engine-DuckDB%201.4.5%20(Embedded)-F59E0B?style=for-the-badge&logo=duckdb)](file:///Users/nishant/Desktop/ShadowLedger/docs/DATABASE_SCHEMA.md)
-[![Concurrency](https://img.shields.io/badge/Concurrency-RLock%20Synchronized%20Queries-10B981?style=for-the-badge)](file:///Users/nishant/Desktop/ShadowLedger/docs/DATABASE_SCHEMA.md)
-[![Storage Type](https://img.shields.io/badge/Storage-Columnar%20File--Backed-6366F1?style=for-the-badge)](file:///Users/nishant/Desktop/ShadowLedger/docs/DATABASE_SCHEMA.md)
+[![Database](https://img.shields.io/badge/Engine-DuckDB%201.4.5%20(Embedded)-F59E0B?style=for-the-badge&logo=duckdb)](./DATABASE_SCHEMA.md)
+[![Concurrency](https://img.shields.io/badge/Concurrency-RLock%20Synchronized%20Queries-10B981?style=for-the-badge)](./DATABASE_SCHEMA.md)
+[![Storage Type](https://img.shields.io/badge/Storage-Columnar%20File--Backed-6366F1?style=for-the-badge)](./DATABASE_SCHEMA.md)
 
 </div>
 

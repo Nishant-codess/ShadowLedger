@@ -96,6 +96,9 @@ class AIExplainResponse(BaseModel):
     economic_story: str
     policy_action: str
     narrative: str
+    simple_narrative: str | None = None
+    auditor_narrative: str | None = None
+    deterministic_narrative: str | None = None
     provider: str
     hypothesis_type: str
     taxonomy_level: str
