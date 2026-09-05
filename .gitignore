@@ -73,3 +73,5 @@ models/
 htmlcov/
 .mypy_cache/
 .ruff_cache/
+playwright-report/
+test-results/

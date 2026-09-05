@@ -93,6 +93,9 @@ class ExceptionMiner:
             if "scenario_id" in o.raw_payload:
                 scenario_tag = o.raw_payload["scenario_id"]
                 break
+            if isinstance(o.raw_payload.get("raw_payload"), dict) and "scenario_id" in o.raw_payload["raw_payload"]:
+                scenario_tag = o.raw_payload["raw_payload"]["scenario_id"]
+                break
 
         case = Case(
             case_id=case_id or f"case_{batch_id[:8]}_{obs_ids[0][:8]}",

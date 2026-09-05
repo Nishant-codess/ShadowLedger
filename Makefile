@@ -25,6 +25,9 @@ dev:
 test:
 	./.venv/bin/pytest apps/api/tests -v
 
+test-e2e:
+	npm --prefix apps/web run test:e2e
+
 lint:
 	./.venv/bin/ruff check apps/api scripts
 	npm --prefix apps/web run lint

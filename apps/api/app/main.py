@@ -3,10 +3,12 @@ from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
 from pathlib import Path
 
-# Ensure repository root is on sys.path regardless of execution working directory
 repo_root = Path(__file__).resolve().parent.parent.parent
+api_root = Path(__file__).resolve().parent.parent
 if str(repo_root) not in sys.path:
     sys.path.insert(0, str(repo_root))
+if str(api_root) not in sys.path:
+    sys.path.insert(0, str(api_root))
 
 from fastapi import FastAPI  # noqa: E402
 from fastapi.middleware.cors import CORSMiddleware  # noqa: E402
@@ -24,7 +26,18 @@ from app.api.routes import (  # noqa: E402
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     """Application startup and shutdown hooks."""
-    # Ensure startup initialization
+    # Ensure startup pre-seeding so cases, patterns, and metrics are ready immediately
+    from app.api.routes.batches import get_case_repo, get_obs_repo
+    from app.api.routes.demo import run_hero_demo
+
+    obs_repo = get_obs_repo()
+    case_repo = get_case_repo()
+    try:
+        run_hero_demo("hero_c", obs_repo, case_repo)
+        run_hero_demo("hero_b", obs_repo, case_repo)
+        run_hero_demo("hero_a", obs_repo, case_repo)
+    except Exception as e:
+        print(f"Startup demo pre-seed warning: {e}")
     yield
 
 

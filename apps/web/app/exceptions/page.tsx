@@ -53,8 +53,10 @@ export default function ExceptionsPage() {
         const q = searchQuery.toLowerCase();
         const matchesId = c.case_id.toLowerCase().includes(q);
         const matchesScn = (c.scenario_id || "").toLowerCase().includes(q);
+        const matchesLabel = (SCENARIO_LABELS[c.scenario_id || ""] || "").toLowerCase().includes(q);
+        const matchesPat = (c.pattern_cluster_id || "").toLowerCase().includes(q);
         const matchesObs = c.observation_ids.some((oid) => oid.toLowerCase().includes(q));
-        if (!matchesId && !matchesScn && !matchesObs) return false;
+        if (!matchesId && !matchesScn && !matchesLabel && !matchesPat && !matchesObs) return false;
       }
       return true;
     });

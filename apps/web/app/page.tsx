@@ -34,9 +34,9 @@ export default function CommandCenterPage() {
     const data = await fetchLatestMetrics();
     if (data && data.batch_id) {
       setMetrics(data);
-      const pats = await fetchPatterns(data.batch_id);
-      setPatterns(pats);
     }
+    const pats = await fetchPatterns();
+    setPatterns(pats);
   }
 
   async function handleRunBatch() {

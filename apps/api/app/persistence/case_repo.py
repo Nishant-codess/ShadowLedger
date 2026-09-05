@@ -77,24 +77,39 @@ class CaseRepository:
         if all_shadow_events:
             self.save_events(all_shadow_events)
 
-    def get_cases_by_batch(self, batch_id: str) -> list[Case]:
-        """Fetch all cases for a batch with their decisions attached."""
-        rows = self.db.query_all(
+    def get_cases_by_batch(self, batch_id: str | None = None) -> list[Case]:
+        """Fetch all cases for a batch (or all batches if batch_id is None) with their decisions attached."""
+        if batch_id:
+            query = """
+                SELECT c.case_id, c.batch_id, c.observation_ids, c.residual_amount,
+                       c.financial_impact, c.pattern_cluster_id, c.scenario_id,
+                       c.status, c.graph_json, c.created_at,
+                       d.decision_id, d.decision, d.winning_hypothesis_id,
+                       d.reason_codes, d.evidence_ids, d.evidence_confidence,
+                       d.contradiction_severity, d.financial_materiality, d.action_risk,
+                       d.engine_version, d.model_version, d.decided_at
+                FROM cases c
+                LEFT JOIN decisions d ON c.case_id = d.case_id
+                WHERE c.batch_id = ?
+                ORDER BY c.financial_impact DESC
             """
-            SELECT c.case_id, c.batch_id, c.observation_ids, c.residual_amount,
-                   c.financial_impact, c.pattern_cluster_id, c.scenario_id,
-                   c.status, c.graph_json, c.created_at,
-                   d.decision_id, d.decision, d.winning_hypothesis_id,
-                   d.reason_codes, d.evidence_ids, d.evidence_confidence,
-                   d.contradiction_severity, d.financial_materiality, d.action_risk,
-                   d.engine_version, d.model_version, d.decided_at
-            FROM cases c
-            LEFT JOIN decisions d ON c.case_id = d.case_id
-            WHERE c.batch_id = ?
-            ORDER BY c.financial_impact DESC
-            """,
-            [batch_id],
-        )
+            params = [batch_id]
+        else:
+            query = """
+                SELECT c.case_id, c.batch_id, c.observation_ids, c.residual_amount,
+                       c.financial_impact, c.pattern_cluster_id, c.scenario_id,
+                       c.status, c.graph_json, c.created_at,
+                       d.decision_id, d.decision, d.winning_hypothesis_id,
+                       d.reason_codes, d.evidence_ids, d.evidence_confidence,
+                       d.contradiction_severity, d.financial_materiality, d.action_risk,
+                       d.engine_version, d.model_version, d.decided_at
+                FROM cases c
+                LEFT JOIN decisions d ON c.case_id = d.case_id
+                ORDER BY c.created_at DESC, c.financial_impact DESC
+            """
+            params = []
+
+        rows = self.db.query_all(query, params)
 
         cases: list[Case] = []
         for r in rows:

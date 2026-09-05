@@ -16,12 +16,6 @@ def list_cases(
     case_repo: CaseRepository = Depends(get_case_repo),
 ) -> list[CaseDetailResponse]:
     """Retrieve all discrepancy cases, optionally filtered by batch."""
-    if not batch_id:
-        batches = case_repo.list_all_batches()
-        if not batches:
-            return []
-        batch_id = batches[0].batch_id
-
     cases = case_repo.get_cases_by_batch(batch_id)
     return [
         CaseDetailResponse(
