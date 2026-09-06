@@ -9,7 +9,8 @@ from typing import Any
 from fastapi import APIRouter, Depends
 
 # Ensure repo root is on sys.path for scripts import
-repo_root = Path(__file__).resolve().parent.parent.parent.parent.parent
+curr_path = Path(__file__).resolve()
+repo_root = next((p for p in curr_path.parents if (p / "scripts").is_dir()), curr_path.parents[5] if len(curr_path.parents) > 5 else curr_path.parent)
 if str(repo_root) not in sys.path:
     sys.path.insert(0, str(repo_root))
 

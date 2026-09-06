@@ -3,7 +3,8 @@ from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
 from pathlib import Path
 
-repo_root = Path(__file__).resolve().parent.parent.parent
+curr = Path(__file__).resolve()
+repo_root = next((p for p in curr.parents if (p / "scripts").is_dir()), curr.parent.parent.parent.parent)
 api_root = Path(__file__).resolve().parent.parent
 if str(repo_root) not in sys.path:
     sys.path.insert(0, str(repo_root))
