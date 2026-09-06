@@ -5,12 +5,11 @@ import logging
 import os
 import urllib.error
 import urllib.request
+from datetime import datetime
 from typing import Any
 
 from fastapi import APIRouter, Depends
 from pydantic import BaseModel
-
-from datetime import datetime, timezone
 
 from app.api.routes.batches import get_case_repo, get_obs_repo
 from app.persistence.case_repo import CaseRepository
@@ -348,26 +347,6 @@ def _get_deterministic_fallback(query: str, case_context: str | None, case_detai
     if _is_about_case_query(q):
         return _build_about_case(case_details)
 
-        if "why did this case resolve" in q:
-            if decision == "auto_resolve":
-                return (
-                    "This case auto-resolved because ShadowLedger proved mathematical value conservation closure (₹98.00 cash + ₹2.00 Cadbury Eclairs candy = ₹100.00) "
-                    "with 90% evidence confidence and zero conflicting merchant records."
-                )
-            elif decision == "human_review":
-                return (
-                    "This case DID NOT auto-resolve; it was escalated to Human Review. Unrecorded off-ledger payments "
-                    "(like the ₹50 driver UPI surcharge) are barred by governance policy from automatic settlement closure."
-                )
-            else:
-                return (
-                    f"This case did not auto-resolve; its status is '{decision}'. ShadowLedger requires verified corroborating evidence before closing any discrepancy."
-                )
-
-        if "why does this ride need human review" in q:
-            if "08" in scenario or "09" in scenario or "mobility" in case_details.get("batch_id", ""):
-                return KNOWLEDGE_RESPONSES["why does this ride need human review"]
-
     # 5. Disambiguation if asking on home page without case context
     if "why did this case resolve" in q or "what is this case" in q:
         return (
@@ -469,7 +448,11 @@ def chat_copilot(
         case_obs = [o for o in all_obs if o.observation_id in c.observation_ids]
 
         if c.shadow_events:
-            winning_type = c.shadow_events[0].hypothesis_type.value
+            winning_type = (
+                c.shadow_events[0].hypothesis_type.value
+                if c.shadow_events[0].hypothesis_type
+                else "reconstructed_latent_event"
+            )
             winning_amt = float(c.shadow_events[0].amount)
         elif "04" in (c.scenario_id or "") or "kirana" in c.batch_id:
             winning_type = "inventory_settlement (Cadbury Eclairs Candy Change)"

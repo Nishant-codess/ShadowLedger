@@ -5,7 +5,7 @@ export default [
   js.configs.recommended,
   ...tseslint.configs.recommended,
   {
-    ignores: [".next/", "node_modules/", "out/"],
+    ignores: [".next/", "node_modules/", "out/", "scripts/", "*.js"],
   },
   {
     rules: {

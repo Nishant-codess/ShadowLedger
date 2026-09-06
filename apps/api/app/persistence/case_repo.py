@@ -217,7 +217,7 @@ class CaseRepository:
             """,
             [case.batch_id]
         )
-        
+
         events = []
         case_obs_set = set(case.observation_ids)
         for r in rows:

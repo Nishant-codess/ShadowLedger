@@ -1,5 +1,7 @@
 """Case inquiry and investigation endpoints."""
 
+from decimal import Decimal
+
 from fastapi import APIRouter, Depends, HTTPException
 
 from app.api.routes.batches import get_case_repo, get_obs_repo
